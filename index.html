@@ -181,7 +181,26 @@ th.sorted.asc::after{content:" ▴"}
 .strength-2{background:color-mix(in srgb,var(--good) 30%,var(--surface))}
 .strength-3{background:color-mix(in srgb,var(--warn) 30%,var(--surface))}
 .strength-4{background:color-mix(in srgb,var(--bad) 18%,var(--surface))}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.btn .ico{width:14px;height:14px;flex:none}
+.btn .badge{font-weight:500}
+/* Recommended Resume sits beside the job description and stays in view while requirements are edited */
+#rec-card{align-self:start;position:sticky;top:14px}
+@media (max-width:980px){#rec-card{position:static}}
+#rec-card .rec{align-items:start}
+#rec-card .rec.rec-empty{align-items:center}
+.rec-empty .ring span{color:var(--ink3)}
+.rec-empty .actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+/* Settings dialog */
+dialog.sheet{width:min(920px,calc(100vw - 24px));max-width:none;max-height:calc(100vh - 40px);padding:0;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink);box-shadow:0 24px 70px rgba(10,15,25,.35);overflow:auto;overscroll-behavior:contain}
+dialog.sheet[open]{animation:sheet-in .16s ease-out}
+dialog.sheet::backdrop{background:rgba(12,18,26,.55)}
+@keyframes sheet-in{from{opacity:0;transform:translateY(6px)}}
+.sheet-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.sheet-close{width:32px;height:32px;padding:0;justify-content:center;font-size:20px;line-height:1}
+.sheet-body{padding:16px}
+.sheet .card{border:0;box-shadow:none;padding:0;background:transparent}
+#lib-alerts .alert{margin-bottom:10px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}dialog.sheet[open]{animation:none}}
 </style>
 </head>
 <body>
@@ -197,6 +216,7 @@ th.sorted.asc::after{content:" ▴"}
   <div class="row">
     <span class="pill local"><span class="dot"></span>Runs locally</span>
     <span class="pill" id="pill-model">Model: not loaded</span>
+    <button class="btn small" id="btn-settings" aria-haspopup="dialog" aria-controls="settings-dialog"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings <span class="badge neutral" id="hdr-lib-count">0 resumes</span></button>
     <button class="btn small" id="btn-theme" title="Toggle light/dark">Theme</button>
     <label class="pill"><input type="checkbox" id="chk-dev"> Developer Mode</label>
   </div>
@@ -226,36 +246,6 @@ th.sorted.asc::after{content:" ▴"}
 <div id="global-alerts"></div>
 
 <div class="grid" id="main-grid">
-  <section class="card" id="panel-library">
-    <div class="card-head">
-      <h2>Resume Library <span class="meta" id="lib-count">0 / 12</span></h2>
-      <div class="tools">
-        <button class="btn small" id="btn-export-lib">Export Resume Library</button>
-        <button class="btn small" id="btn-import-lib">Import Resume Library</button>
-        <button class="btn small" id="btn-clear-emb">Clear Cached Embeddings</button>
-        <button class="btn small danger" id="btn-clear-all">Clear All Stored Data</button>
-      </div>
-    </div>
-    <div class="dropzone" id="dropzone">
-      Drag and drop up to 12 resumes here (DOCX, PDF, TXT, MD)
-      <div class="btns">
-        <button class="btn" id="btn-pick">Select files</button>
-        <button class="btn" id="btn-paste-resume">Paste resume text</button>
-      </div>
-    </div>
-    <input type="file" id="file-input" multiple accept=".docx,.pdf,.txt,.md,.markdown,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
-    <input type="file" id="file-replace" accept=".docx,.pdf,.txt,.md,.markdown" class="hidden">
-    <input type="file" id="file-import-lib" accept=".json" class="hidden">
-    <input type="file" id="file-import-learn" accept=".json" class="hidden">
-    <div id="paste-resume-box" class="hidden" style="margin-top:12px">
-      <div class="row" style="margin-bottom:6px"><input type="text" id="paste-label" placeholder="Resume label (e.g. Analytics Operations)" style="flex:1"></div>
-      <textarea id="paste-text" placeholder="Paste resume text here"></textarea>
-      <div class="row" style="margin-top:6px"><button class="btn primary" id="btn-paste-add">Add pasted resume</button><button class="btn" id="btn-paste-cancel">Cancel</button></div>
-    </div>
-    <div class="resume-list" id="resume-list"></div>
-    <div class="note" id="lib-empty">No resumes loaded yet. Load your tailored resume versions, or use Load Demo Data in the job panel.</div>
-  </section>
-
   <section class="card" id="panel-jd">
     <div class="card-head">
       <h2>Paste Job Description</h2>
@@ -296,8 +286,11 @@ th.sorted.asc::after{content:" ▴"}
       <div class="body"><div class="note">Factual eligibility items (years, degrees, certifications, clearance, location, travel, mandatory tools). Semantic similarity cannot prove these; check them yourself.</div><div id="verify-list"></div></div>
     </details>
   </section>
+
+  <section class="card" id="rec-card"></section>
 </div>
 
+<input type="file" id="file-import-learn" accept=".json" class="hidden">
 <details class="panel" id="settings-panel">
   <summary>Advanced Settings</summary>
   <div class="body">
@@ -320,7 +313,6 @@ th.sorted.asc::after{content:" ▴"}
 </details>
 
 <div class="results hidden" id="results">
-  <section class="card" id="rec-card"></section>
   <section class="card" id="custom-card"></section>
   <section class="card">
     <div class="card-head"><h2>Ranked Resumes</h2><div class="tools"><button class="btn small" id="btn-export-csv">Export CSV</button><button class="btn small" id="btn-export-json">Export JSON</button></div></div>
@@ -350,6 +342,43 @@ th.sorted.asc::after{content:" ▴"}
 
 <footer class="note" style="margin-top:30px">Resume Match Lab runs entirely in this browser tab. Resume and job-description text is never included in any network request.</footer>
 </div>
+<dialog class="sheet" id="settings-dialog" aria-labelledby="settings-title">
+  <div class="sheet-head">
+    <h2 id="settings-title">Settings</h2>
+    <button class="btn sheet-close" id="btn-settings-close" aria-label="Close settings">&times;</button>
+  </div>
+  <div class="sheet-body">
+      <section class="card" id="panel-library">
+        <div class="card-head">
+          <h3>Resume Library <span class="meta" id="lib-count">0 / 12</span></h3>
+          <div class="tools">
+            <button class="btn small" id="btn-export-lib">Export Resume Library</button>
+            <button class="btn small" id="btn-import-lib">Import Resume Library</button>
+            <button class="btn small" id="btn-clear-emb">Clear Cached Embeddings</button>
+            <button class="btn small danger" id="btn-clear-all">Clear All Stored Data</button>
+          </div>
+        </div>
+        <div id="lib-alerts"></div>
+        <div class="dropzone" id="dropzone">
+          Drag and drop up to 12 resumes here (DOCX, PDF, TXT, MD)
+          <div class="btns">
+            <button class="btn" id="btn-pick">Select files</button>
+            <button class="btn" id="btn-paste-resume">Paste resume text</button>
+          </div>
+        </div>
+        <input type="file" id="file-input" multiple accept=".docx,.pdf,.txt,.md,.markdown,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
+        <input type="file" id="file-replace" accept=".docx,.pdf,.txt,.md,.markdown" class="hidden">
+        <input type="file" id="file-import-lib" accept=".json" class="hidden">
+        <div id="paste-resume-box" class="hidden" style="margin-top:12px">
+          <div class="row" style="margin-bottom:6px"><input type="text" id="paste-label" placeholder="Resume label (e.g. Analytics Operations)" style="flex:1"></div>
+          <textarea id="paste-text" placeholder="Paste resume text here"></textarea>
+          <div class="row" style="margin-top:6px"><button class="btn primary" id="btn-paste-add">Add pasted resume</button><button class="btn" id="btn-paste-cancel">Cancel</button></div>
+        </div>
+        <div class="resume-list" id="resume-list"></div>
+        <div class="note" id="lib-empty">No resumes loaded yet. Load your tailored resume versions, or use Load Demo Data in the job panel.</div>
+    </section>
+  </div>
+</dialog>
 <div class="toast" id="toast"></div>
 <!-- ===================== INFERENCE WORKER (source, instantiated as a classic Blob worker; dynamic import loads Transformers.js) ===================== -->
 <script type="text/plain" id="rml-worker">
@@ -579,8 +608,8 @@ function el(tag, attrs = {}, children = []) {
   return e;
 }
 let toastTimer = null;
-function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
-function alertBox(kind, msg, id) { const box = $('global-alerts'); if (id) { const old = box.querySelector('[data-id="' + id + '"]'); if (old) old.remove(); } const a = el('div', { class: 'alert ' + kind, style: 'margin-bottom:12px', 'data-id': id || '' }); a.textContent = msg; box.appendChild(a); return a; }
+function toast(msg) { const t = $('toast'); const dlg = $('settings-dialog'); const host = dlg && dlg.open ? dlg : document.body; if (t.parentNode !== host) host.appendChild(t); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
+function alertBox(kind, msg, id) { const box = (id && String(id).startsWith('file-') && $('lib-alerts')) ? $('lib-alerts') : $('global-alerts'); if (id) { const old = box.querySelector('[data-id="' + id + '"]'); if (old) old.remove(); } const a = el('div', { class: 'alert ' + kind, style: 'margin-bottom:12px', 'data-id': id || '' }); a.textContent = msg; box.appendChild(a); return a; }
 function downloadText(name, text, mime = 'text/plain') { const blob = new Blob([text], { type: mime }); const url = URL.createObjectURL(blob); const a = el('a', { href: url, download: name }); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }
 async function copyText(text) { try { await navigator.clipboard.writeText(text); toast('Copied to clipboard'); } catch (e) { downloadText('resume-brief.txt', text); toast('Clipboard unavailable — downloaded as file instead'); } }
 
@@ -1712,7 +1741,7 @@ function stopTimer() { clearInterval(state.timerHandle); $('st-elapsed').textCon
 function prepareResumeDerived(resume) { const avg = mean(resume.chunks.map(c => c.wordCount)) || 1; resume.avgChunkLen = avg; for (const c of resume.chunks) if (!c.termCounts) c.termCounts = extractTerms(c.norm); }
 async function runAnalysis() {
   if (analyzing) return; if (!state.resumes.length || !state.jd.reqs.length) return;
-  analyzing = true; $('btn-analyze').disabled = true; startTimer(); $('results').classList.remove('hidden');
+  analyzing = true; $('btn-analyze').disabled = true; startTimer(); renderRecEmpty(); $('results').classList.remove('hidden');
   try {
     const settings = state.settings; const reqs = state.jd.reqs; const resumes = state.resumes; resumes.forEach(prepareResumeDerived);
     setProgress(2, 'Cleaning job description and extracting requirements');
@@ -1741,7 +1770,7 @@ async function runAnalysis() {
     setProgress(100, 'Complete'); toast('Analysis complete');
     markStep(3); markStep(4);
   } catch (e) { console.error(e); alertBox('bad', 'Analysis failed: ' + e.message, 'analysis'); setProgress(0, 'Failed'); }
-  finally { analyzing = false; stopTimer(); updateAnalyzeButton(); updateStatus(); }
+  finally { analyzing = false; stopTimer(); updateAnalyzeButton(); updateStatus(); renderRecEmpty(); }
 }
 function computeOverall(semantic, reqs, settings) {
   const d = semantic.dims; const q = semantic.queryVectors; const qc = new Float32Array(d); let ws = 0;
@@ -1971,7 +2000,7 @@ async function handleFiles(files, replaceId) {
   }
   setProgress(0, 'Idle');
 }
-function invalidateAnalysis() { if (state.analysis) { state.analysis = null; $('results').classList.add('hidden'); $('st-step').textContent = 'Inputs changed — run Analyze again'; } }
+function invalidateAnalysis() { if (state.analysis) { state.analysis = null; $('results').classList.add('hidden'); $('st-step').textContent = 'Inputs changed — run Analyze again'; } renderRecEmpty(); }
 function repreprocessAll() { for (const r of state.resumes) deriveResume(r); renderLibrary(); }
 function renderLibrary() {
   const list = $('resume-list'); list.textContent = ''; $('lib-count').textContent = `${state.resumes.length} / ${MAX_RESUMES}`; $('lib-empty').classList.toggle('hidden', state.resumes.length > 0);
@@ -1987,7 +2016,11 @@ function renderLibrary() {
     card.append(el('div', { class: 'actions' }, [el('button', { class: 'btn small', text: 'Replace', onclick: () => { const inp = $('file-replace'); inp.dataset.replace = r.id; inp.value = ''; inp.click(); } }), el('button', { class: 'btn small danger', text: 'Remove', onclick: () => removeResume(r.id) })]));
     list.append(card);
   }
+  $('hdr-lib-count').textContent = state.resumes.length + (state.resumes.length === 1 ? ' resume' : ' resumes');
+  renderRecEmpty();
 }
+function openSettings() { const d = $('settings-dialog'); if (d.open) return; if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); }
+function closeSettings() { const d = $('settings-dialog'); if (typeof d.close === 'function') d.close(); else { d.removeAttribute('open'); document.body.appendChild($('toast')); } }
 
 /* ---------------------------------- JOB DESCRIPTION UI ---------------------------------- */
 let jdDebounce = null;
@@ -2002,6 +2035,20 @@ function processJd() {
   $('jd-reqcount').textContent = state.jd.reqs.length; $('st-reqs').textContent = state.jd.reqs.length;
   const hint = $('jd-hint'); hint.textContent = words === 0 ? '' : words < 40 ? 'The job description is too short to analyze meaningfully (add at least ~40 words).' : state.jd.reqs.length === 0 ? 'No requirement units detected — check the Excluded content panel or add line breaks.' : '';
   renderExcluded(); renderRequirements(); updateAnalyzeButton(); if (words > 0) markStep(2); invalidateAnalysis(); renderVerify();
+}
+function renderRecEmpty() {
+  if (state.analysis && state.analysis.results) return;
+  const card = $('rec-card'); card.textContent = '';
+  const n = state.resumes.length; const plural = n === 1 ? 'resume' : 'resumes';
+  const jdReady = state.jd.raw.split(/\s+/).filter(Boolean).length >= 40 && state.jd.reqs.length > 0;
+  let msg, btn = null;
+  if (analyzing) msg = `Analyzing ${n} ${plural} against this job description. The recommendation appears here when scoring finishes.`;
+  else if (!n) { msg = 'Your resume library is empty. Add your tailored resume versions, then paste a job description and press Analyze Resumes.'; btn = el('button', { class: 'btn primary', text: 'Add resumes', onclick: openSettings }); }
+  else if (!jdReady) { msg = `${n} ${plural} ready. Paste a job description to find the best fit.`; btn = el('button', { class: 'btn', text: 'Manage resumes', onclick: openSettings }); }
+  else { msg = `Ready to compare ${n} ${plural}. Press Analyze Resumes to see which version fits this job best.`; btn = el('button', { class: 'btn', text: 'Manage resumes', onclick: openSettings }); }
+  card.append(el('div', { class: 'card-head' }, [el('h2', { text: 'Recommended Resume' })]));
+  const ring = el('div', { class: 'ring', style: '--p:0' }, [el('span', { text: '—' }), el('small', { text: 'match score' })]);
+  card.append(el('div', { class: 'rec rec-empty' }, [ring, el('div', {}, [el('p', { text: msg }), btn ? el('div', { class: 'actions' }, [btn]) : null])]));
 }
 function renderExcluded() {
   const list = $('excl-list'); list.textContent = ''; const ex = state.jd.blocks.filter(b => b.excluded); $('excl-count').textContent = ex.length + ' block' + (ex.length === 1 ? '' : 's');
@@ -2316,6 +2363,11 @@ function wireEvents() {
   $('btn-paste-add').addEventListener('click', async () => { const t = $('paste-text').value; const label = $('paste-label').value.trim(); const r = await addResume({ text: t, label: label || undefined, filename: '' }); if (r) { $('paste-text').value = ''; $('paste-label').value = ''; $('paste-resume-box').classList.add('hidden'); } });
   $('btn-export-lib').addEventListener('click', exportLibrary); $('btn-import-lib').addEventListener('click', () => { $('file-import-lib').value = ''; $('file-import-lib').click(); }); $('file-import-lib').addEventListener('change', e => { if (e.target.files[0]) importLibrary(e.target.files[0]); });
   $('btn-clear-emb').addEventListener('click', clearEmbeddings); $('btn-clear-all').addEventListener('click', clearAll);
+  const dlg = $('settings-dialog'); let downOnBackdrop = false;
+  const outside = (e) => { const r = dlg.getBoundingClientRect(); return e.target === dlg && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom); };
+  $('btn-settings').addEventListener('click', openSettings); $('btn-settings-close').addEventListener('click', closeSettings);
+  dlg.addEventListener('pointerdown', e => { downOnBackdrop = outside(e); }); dlg.addEventListener('click', e => { if (downOnBackdrop && outside(e)) closeSettings(); downOnBackdrop = false; });
+  dlg.addEventListener('close', () => document.body.appendChild($('toast')));
   $('jd-text').addEventListener('input', onJdInput); $('jd-title').addEventListener('input', onJdInput); $('jd-company').addEventListener('input', onJdInput);
   $('btn-clear-jd').addEventListener('click', () => { $('jd-text').value = ''; $('jd-title').value = ''; $('jd-company').value = ''; state.jd.reqs = []; processJd(); });
   $('btn-demo').addEventListener('click', async () => { for (const d of DEMO_RESUMES) { if (state.resumes.some(r => r.label === d.label)) continue; await addResume({ text: d.text, label: d.label, filename: d.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.txt' }); } $('jd-title').value = 'Senior Manager, Operations Strategy & Analytics'; $('jd-company').value = 'Contoso Logistics (demo)'; $('jd-text').value = DEMO_JD; processJd(); toast('Demo data loaded — press Analyze Resumes'); });
@@ -2338,7 +2390,7 @@ async function init() {
   if (typeof Worker === 'undefined' || typeof WebAssembly === 'undefined') alertBox('warn', 'This browser lacks Web Workers or WebAssembly; the semantic model cannot run. The deterministic matching engine will be used.', 'compat');
   try { const s = await Storage.get('settings', 'settings'); if (s && s.value) state.settings = { ...DEFAULT_SETTINGS, ...s.value }; } catch (e) { /* defaults */ }
   applyTheme();
-  try { const stored = await Storage.all('resumes'); for (const r of stored.sort((a, b) => a.loadedAt - b.loadedAt)) { if (state.resumes.length >= MAX_RESUMES) break; const res = { ...r, warnings: r.warnings || [], embed: null }; try { deriveResume(res); state.resumes.push(res); } catch (e) { state.workerLog.push('Stored resume unreadable, skipped: ' + e.message); } } } catch (e) { alertBox('warn', 'Stored resumes could not be read (cache may be corrupted). Use Clear All Stored Data to reset.', 'idb2'); }
+  try { const stored = await Storage.all('resumes'); for (const r of stored.sort((a, b) => a.loadedAt - b.loadedAt)) { if (state.resumes.length >= MAX_RESUMES) break; const res = { ...r, warnings: r.warnings || [], embed: null }; try { deriveResume(res); state.resumes.push(res); } catch (e) { state.workerLog.push('Stored resume unreadable, skipped: ' + e.message); } } } catch (e) { alertBox('warn', 'Stored resumes could not be read (cache may be corrupted). Use Clear All Stored Data in Settings to reset.', 'idb2'); }
   try { state.feedback = await Storage.all('feedback'); const lw = await Storage.get('modelWeights', state.settings.modelId); if (lw) state.learned = lw; } catch (e) { /* ignore */ }
   try { const c = await Storage.get('calibration', calibKey()); if (c) state.calib = c; } catch (e) { /* ignore */ }
   wireEvents(); renderLibrary(); renderSettings(); renderVerify(); updateStatus(); updateAnalyzeButton(); renderLearnStatus();
