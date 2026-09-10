@@ -181,26 +181,7 @@ th.sorted.asc::after{content:" ▴"}
 .strength-2{background:color-mix(in srgb,var(--good) 30%,var(--surface))}
 .strength-3{background:color-mix(in srgb,var(--warn) 30%,var(--surface))}
 .strength-4{background:color-mix(in srgb,var(--bad) 18%,var(--surface))}
-.btn .ico{width:14px;height:14px;flex:none}
-.btn .badge{font-weight:500}
-/* Recommended Resume sits beside the job description and stays in view while requirements are edited */
-#rec-card{align-self:start;position:sticky;top:14px}
-@media (max-width:980px){#rec-card{position:static}}
-#rec-card .rec{align-items:start}
-#rec-card .rec.rec-empty{align-items:center}
-.rec-empty .ring span{color:var(--ink3)}
-.rec-empty .actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
-/* Settings dialog */
-dialog.sheet{width:min(920px,calc(100vw - 24px));max-width:none;max-height:calc(100vh - 40px);padding:0;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--ink);box-shadow:0 24px 70px rgba(10,15,25,.35);overflow:auto;overscroll-behavior:contain}
-dialog.sheet[open]{animation:sheet-in .16s ease-out}
-dialog.sheet::backdrop{background:rgba(12,18,26,.55)}
-@keyframes sheet-in{from{opacity:0;transform:translateY(6px)}}
-.sheet-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
-.sheet-close{width:32px;height:32px;padding:0;justify-content:center;font-size:20px;line-height:1}
-.sheet-body{padding:16px}
-.sheet .card{border:0;box-shadow:none;padding:0;background:transparent}
-#lib-alerts .alert{margin-bottom:10px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}dialog.sheet[open]{animation:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
@@ -216,7 +197,6 @@ dialog.sheet::backdrop{background:rgba(12,18,26,.55)}
   <div class="row">
     <span class="pill local"><span class="dot"></span>Runs locally</span>
     <span class="pill" id="pill-model">Model: not loaded</span>
-    <button class="btn small" id="btn-settings" aria-haspopup="dialog" aria-controls="settings-dialog"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings <span class="badge neutral" id="hdr-lib-count">0 resumes</span></button>
     <button class="btn small" id="btn-theme" title="Toggle light/dark">Theme</button>
     <label class="pill"><input type="checkbox" id="chk-dev"> Developer Mode</label>
   </div>
@@ -246,6 +226,36 @@ dialog.sheet::backdrop{background:rgba(12,18,26,.55)}
 <div id="global-alerts"></div>
 
 <div class="grid" id="main-grid">
+  <section class="card" id="panel-library">
+    <div class="card-head">
+      <h2>Resume Library <span class="meta" id="lib-count">0 / 12</span></h2>
+      <div class="tools">
+        <button class="btn small" id="btn-export-lib">Export Resume Library</button>
+        <button class="btn small" id="btn-import-lib">Import Resume Library</button>
+        <button class="btn small" id="btn-clear-emb">Clear Cached Embeddings</button>
+        <button class="btn small danger" id="btn-clear-all">Clear All Stored Data</button>
+      </div>
+    </div>
+    <div class="dropzone" id="dropzone">
+      Drag and drop up to 12 resumes here (DOCX, PDF, TXT, MD)
+      <div class="btns">
+        <button class="btn" id="btn-pick">Select files</button>
+        <button class="btn" id="btn-paste-resume">Paste resume text</button>
+      </div>
+    </div>
+    <input type="file" id="file-input" multiple accept=".docx,.pdf,.txt,.md,.markdown,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
+    <input type="file" id="file-replace" accept=".docx,.pdf,.txt,.md,.markdown" class="hidden">
+    <input type="file" id="file-import-lib" accept=".json" class="hidden">
+    <input type="file" id="file-import-learn" accept=".json" class="hidden">
+    <div id="paste-resume-box" class="hidden" style="margin-top:12px">
+      <div class="row" style="margin-bottom:6px"><input type="text" id="paste-label" placeholder="Resume label (e.g. Analytics Operations)" style="flex:1"></div>
+      <textarea id="paste-text" placeholder="Paste resume text here"></textarea>
+      <div class="row" style="margin-top:6px"><button class="btn primary" id="btn-paste-add">Add pasted resume</button><button class="btn" id="btn-paste-cancel">Cancel</button></div>
+    </div>
+    <div class="resume-list" id="resume-list"></div>
+    <div class="note" id="lib-empty">No resumes loaded yet. Load your tailored resume versions, or use Load Demo Data in the job panel.</div>
+  </section>
+
   <section class="card" id="panel-jd">
     <div class="card-head">
       <h2>Paste Job Description</h2>
@@ -286,11 +296,8 @@ dialog.sheet::backdrop{background:rgba(12,18,26,.55)}
       <div class="body"><div class="note">Factual eligibility items (years, degrees, certifications, clearance, location, travel, mandatory tools). Semantic similarity cannot prove these; check them yourself.</div><div id="verify-list"></div></div>
     </details>
   </section>
-
-  <section class="card" id="rec-card"></section>
 </div>
 
-<input type="file" id="file-import-learn" accept=".json" class="hidden">
 <details class="panel" id="settings-panel">
   <summary>Advanced Settings</summary>
   <div class="body">
@@ -308,11 +315,12 @@ dialog.sheet::backdrop{background:rgba(12,18,26,.55)}
       <button class="btn small" id="btn-learn-export">Export Learning Data</button>
       <button class="btn small" id="btn-learn-import">Import Learning Data</button>
     </div>
-    <div class="note">The embedding model performs the semantic representation. The optional learner is a tiny local calibrator trained only on your own Correct / Incorrect marks (activates after 20 labeled examples, blended at a limited weight). It has not been trained on recruiters, ATS decisions, or hiring outcomes.</div>
+    <div class="note">Correct / Incorrect is also a manual evidence check: Incorrect immediately rejects that exact requirement/evidence pairing from the current score; Correct confirms it. The same marks can optionally train the tiny local calibrator after 20 labeled examples. The learner has not been trained on recruiters, ATS decisions, or hiring outcomes.</div>
   </div>
 </details>
 
 <div class="results hidden" id="results">
+  <section class="card" id="rec-card"></section>
   <section class="card" id="custom-card"></section>
   <section class="card">
     <div class="card-head"><h2>Ranked Resumes</h2><div class="tools"><button class="btn small" id="btn-export-csv">Export CSV</button><button class="btn small" id="btn-export-json">Export JSON</button></div></div>
@@ -342,51 +350,14 @@ dialog.sheet::backdrop{background:rgba(12,18,26,.55)}
 
 <footer class="note" style="margin-top:30px">Resume Match Lab runs entirely in this browser tab. Resume and job-description text is never included in any network request.</footer>
 </div>
-<dialog class="sheet" id="settings-dialog" aria-labelledby="settings-title">
-  <div class="sheet-head">
-    <h2 id="settings-title">Settings</h2>
-    <button class="btn sheet-close" id="btn-settings-close" aria-label="Close settings">&times;</button>
-  </div>
-  <div class="sheet-body">
-      <section class="card" id="panel-library">
-        <div class="card-head">
-          <h3>Resume Library <span class="meta" id="lib-count">0 / 12</span></h3>
-          <div class="tools">
-            <button class="btn small" id="btn-export-lib">Export Resume Library</button>
-            <button class="btn small" id="btn-import-lib">Import Resume Library</button>
-            <button class="btn small" id="btn-clear-emb">Clear Cached Embeddings</button>
-            <button class="btn small danger" id="btn-clear-all">Clear All Stored Data</button>
-          </div>
-        </div>
-        <div id="lib-alerts"></div>
-        <div class="dropzone" id="dropzone">
-          Drag and drop up to 12 resumes here (DOCX, PDF, TXT, MD)
-          <div class="btns">
-            <button class="btn" id="btn-pick">Select files</button>
-            <button class="btn" id="btn-paste-resume">Paste resume text</button>
-          </div>
-        </div>
-        <input type="file" id="file-input" multiple accept=".docx,.pdf,.txt,.md,.markdown,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden">
-        <input type="file" id="file-replace" accept=".docx,.pdf,.txt,.md,.markdown" class="hidden">
-        <input type="file" id="file-import-lib" accept=".json" class="hidden">
-        <div id="paste-resume-box" class="hidden" style="margin-top:12px">
-          <div class="row" style="margin-bottom:6px"><input type="text" id="paste-label" placeholder="Resume label (e.g. Analytics Operations)" style="flex:1"></div>
-          <textarea id="paste-text" placeholder="Paste resume text here"></textarea>
-          <div class="row" style="margin-top:6px"><button class="btn primary" id="btn-paste-add">Add pasted resume</button><button class="btn" id="btn-paste-cancel">Cancel</button></div>
-        </div>
-        <div class="resume-list" id="resume-list"></div>
-        <div class="note" id="lib-empty">No resumes loaded yet. Load your tailored resume versions, or use Load Demo Data in the job panel.</div>
-    </section>
-  </div>
-</dialog>
 <div class="toast" id="toast"></div>
-<!-- ===================== INFERENCE WORKER (source, instantiated as a Blob module worker) ===================== -->
+<!-- ===================== INFERENCE WORKER (source, instantiated as a classic Blob worker; dynamic import loads Transformers.js) ===================== -->
 <script type="text/plain" id="rml-worker">
 /* Resume Match Lab — inference worker.
    Responsibilities: model loading, embedding, similarity, calibration, optional local reranker.
    Message protocol (main -> worker): INIT_MODEL, EMBED, SIMILARITY, CALIBRATE, TRAIN_RERANKER, PREDICT_RERANKER, RESET_MODEL
    Message protocol (worker -> main): MODEL_PROGRESS, MODEL_READY, EMBED_PROGRESS, RESULT, ERROR, LOG */
-const TRANSFORMERS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0';
+const TRANSFORMERS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1';
 const MODEL_SPECS = {
   'Xenova/all-MiniLM-L6-v2': { pooling: 'mean', normalize: true, maxTokens: 256, queryPrefix: '', label: 'all-MiniLM-L6-v2' },
   'Xenova/bge-small-en-v1.5': { pooling: 'cls', normalize: true, maxTokens: 512, queryPrefix: 'Represent this sentence for searching relevant passages: ', label: 'bge-small-en-v1.5' }
@@ -550,8 +521,8 @@ self.onmessage = async (ev) => {
    =================================================================================================== */
 
 /* ---------------------------------- CONFIGURATION ---------------------------------- */
-const APP_VERSION = '1.0.0';
-const PREPROCESS_VERSION = 'pp-1.0';
+const APP_VERSION = '1.1.0';
+const PREPROCESS_VERSION = 'pp-1.1';
 const CHUNK_VERSION = 'ch-1.0';
 const MAX_RESUMES = 12;
 const LIBS = {
@@ -566,7 +537,7 @@ const MODEL_OPTIONS = {
 const DEFAULT_SETTINGS = {
   wSemantic: 40, wKeyword: 20, wFunctional: 25, wOverall: 15,
   enSemantic: true, enKeyword: true, enFunctional: true, enOverall: true,
-  multRequired: 1.0, multResponsibility: 0.75, multPreferred: 0.5, multInformational: 0.2,
+  multRequired: 1.0, multResponsibility: 0.75, multPreferred: 0.5, multInformational: 0.0,
   exactBoost: 1.0, semanticStrength: 1.0, corpusStrength: 1.0, mustHavePenalty: 6,
   wProfile: 0.85, wSkills: 0.7, wExperience: 1.0,
   customThreshold: 70, oppModerate: 5, oppStrong: 10, oppHigh: 15,
@@ -608,8 +579,8 @@ function el(tag, attrs = {}, children = []) {
   return e;
 }
 let toastTimer = null;
-function toast(msg) { const t = $('toast'); const dlg = $('settings-dialog'); const host = dlg && dlg.open ? dlg : document.body; if (t.parentNode !== host) host.appendChild(t); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
-function alertBox(kind, msg, id) { const box = (id && String(id).startsWith('file-') && $('lib-alerts')) ? $('lib-alerts') : $('global-alerts'); if (id) { const old = box.querySelector('[data-id="' + id + '"]'); if (old) old.remove(); } const a = el('div', { class: 'alert ' + kind, style: 'margin-bottom:12px', 'data-id': id || '' }); a.textContent = msg; box.appendChild(a); return a; }
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
+function alertBox(kind, msg, id) { const box = $('global-alerts'); if (id) { const old = box.querySelector('[data-id="' + id + '"]'); if (old) old.remove(); } const a = el('div', { class: 'alert ' + kind, style: 'margin-bottom:12px', 'data-id': id || '' }); a.textContent = msg; box.appendChild(a); return a; }
 function downloadText(name, text, mime = 'text/plain') { const blob = new Blob([text], { type: mime }); const url = URL.createObjectURL(blob); const a = el('a', { href: url, download: name }); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }
 async function copyText(text) { try { await navigator.clipboard.writeText(text); toast('Copied to clipboard'); } catch (e) { downloadText('resume-brief.txt', text); toast('Clipboard unavailable — downloaded as file instead'); } }
 
@@ -793,7 +764,7 @@ const FAMILIES = {
   business_ops: { label: 'Business Operations', terms: ['business operations', 'operating plans', 'operating plan', 'operating model', 'strategic initiatives', 'performance management', 'business reviews', 'business review', 'profit and loss', 'financial management', 'financial impact', 'cost control', 'cost reduction', 'resource allocation', 'vendor coordination', 'vendor management', 'stakeholder alignment', 'executive communication', 'cross functional leadership', 'organizational accountability', 'operating cadence', 'business results', 'strategic planning', 'workforce planning', 'decision support', 'budget', 'budgeting', 'cost savings'] },
   technical_ops: { label: 'Technical Operations', terms: ['technical operations', 'system configuration', 'requirements gathering', 'business requirements', 'functional requirements', 'workflow design', 'user testing', 'user acceptance testing', 'implementation', 'troubleshooting', 'systems implementation', 'user adoption', 'system logic', 'monitoring logic', 'technical stakeholders', 'nontechnical teams', 'non technical', 'automation', 'internal tools', 'application development', 'prototypes', 'prototype', 'google apps script', 'javascript', 'html', 'api', 'twilio', 'databricks', 'sql', 'knime', 'salesforce', 'tableau', 'power bi', 'leaflet', 'gis', 'csv', 'integration', 'technical implementation', 'configuration', 'testing'] },
   analytics: { label: 'Analytics / BI', terms: ['operations analytics', 'operational analytics', 'business intelligence', 'data analysis', 'data analytics', 'kpi design', 'kpi development', 'metrics', 'performance measurement', 'trend analysis', 'root cause analysis', 'cohort analysis', 'service level analysis', 'workforce analysis', 'financial analysis', 'forecasting', 'capacity analysis', 'scorecards', 'scorecard', 'performance scorecards', 'dashboard design', 'dashboards', 'reporting', 'decision support', 'quality measurement', 'statistical analysis', 'data driven', 'databricks', 'sql', 'tableau', 'power bi', 'excel', 'google sheets', 'bayesian', 'ranking', 'segmentation', 'cohorts', 'performance tiers', 'analytics', 'data model', 'data pipeline', 'insights', 'kpi'] },
-  logistics: { label: 'Logistics / Field Operations', terms: ['logistics', 'logistics operations', 'transportation operations', 'last mile', 'delivery operations', 'dispatch', 'field operations', 'market operations', 'service delivery', 'capacity planning', 'workforce coverage', 'scheduling', 'utilization', 'distributed workforce', 'contractor operations', 'fleet operations', 'fleet', 'driver operations', 'drivers', 'delivery performance', 'on time performance', 'on time', 'fulfillment', 'transportation', 'routing', 'network operations', 'operational continuity', 'escalation management', 'warehouse', 'supply chain', 'couriers', 'delivery'] },
+  logistics: { label: 'Logistics / Field Operations', terms: ['logistics', 'logistics operations', 'distribution operations', 'warehouse operations', 'warehouse management', 'transportation operations', 'last mile', 'delivery operations', 'dispatch', 'field operations', 'market operations', 'service delivery', 'capacity planning', 'labor planning', 'labor management', 'staffing', 'workforce coverage', 'scheduling', 'utilization', 'distributed workforce', 'contractor operations', 'fleet operations', 'fleet', 'driver operations', 'drivers', 'delivery performance', 'on time performance', 'on time', 'fulfillment', 'transportation', 'routing', 'network operations', 'operational continuity', 'escalation management', 'warehouse', 'distribution', 'supply chain', 'inbound', 'outbound', 'receiving', 'shipping', 'shipments', 'inventory', 'wms', 'warehouse management system', 'material handling', 'material handling equipment', 'mhe', 'space utilization', 'dock operations', 'facility operations', 'warehouse staff', 'warehouse supervisors', 'productivity', 'service level', 'sla', 'couriers', 'delivery'] },
   customer_ops: { label: 'Customer / Client Operations', terms: ['customer operations', 'client operations', 'customer success', 'customer experience', 'service delivery', 'partner performance', 'account performance', 'service expectations', 'client reporting', 'relationship management', 'stakeholder management', 'client relationships', 'implementation support', 'escalations', 'corrective actions', 'service recovery', 'quality assurance', 'coaching', 'csat', 'customer satisfaction', 'partner management', 'enterprise clients', 'client communications', 'account management', 'clients', 'customers', 'nps', 'retention', 'onboarding'] },
   strategy_ops: { label: 'Strategy & Operations', terms: ['strategy and operations', 'strategic operations', 'business strategy', 'operating strategy', 'problem framing', 'ambiguous problems', 'ambiguity', 'initiative prioritization', 'prioritization', 'business recommendations', 'strategic recommendations', 'operating plans', 'success measures', 'financial impact', 'business impact', 'implementation effort', 'strategic initiatives', 'cross functional execution', 'operating model', 'organizational priorities', 'growth opportunities', 'cost opportunities', 'performance opportunities', 'service opportunities', 'executive recommendations', 'tradeoffs', 'trade offs', 'strategy', 'business case', 'market analysis', 'go to market'] },
   ci: { label: 'Continuous Improvement', terms: ['continuous improvement', 'lean', 'lean six sigma', 'process mapping', 'value stream', 'standard work', 'standardization', 'root cause analysis', 'waste reduction', 'control plans', 'control plan', 'quality assurance', 'corrective actions', 'performance controls', 'compliance systems', 'workflow redesign', 'sop development', 'sop', 'training', 'user adoption', 'measurement', 'iteration', 'quality systems', 'change adoption', 'kaizen', 'dmaic', 'process redesign', 'quality', 'process documentation', 'best practices', 'efficiency'] },
@@ -802,6 +773,16 @@ const FAMILIES = {
   }
 };
 const FAMILY_KEYS = Object.keys(FAMILIES);
+const FAMILY_BROAD_TERMS = new Set(['training','quality','efficiency','implementation','measurement','clients','customers','scheduling','reporting','metrics','ownership','support','service delivery','market operations','on time','dashboards','adoption']);
+const FAMILY_HIGH_SIGNAL_TERMS = new Set(['logistics','warehouse','distribution','wms','tms','dispatch','routing','inbound','outbound','receiving','shipping','inventory','mhe','sql','databricks','tableau','power bi','salesforce','lean','lean six sigma','kaizen','dmaic','pmp','program management','project management','business intelligence','root cause analysis','continuous improvement','profit and loss','capacity planning']);
+function familyTermWeight(term) {
+  const words = term.split(' ').length;
+  if (FAMILY_HIGH_SIGNAL_TERMS.has(term)) return 1.45 + Math.max(0, words - 1) * 0.15;
+  if (FAMILY_BROAD_TERMS.has(term)) return 0.35;
+  if (words >= 3) return 1.35;
+  if (words === 2) return 1.05;
+  return 0.70;
+}
 const RESUME_CATEGORIES = ['General Operations', 'Business Operations', 'Technical Operations', 'Analytics Operations', 'Logistics Operations', 'Customer / Client Success Operations', 'Strategy & Operations', 'Continuous Improvement', 'Business Systems & Automation', 'Program Operations & Transformation'];
 const FAMILY_TO_CATEGORY = { general_ops: 'General Operations', business_ops: 'Business Operations', technical_ops: 'Technical Operations', analytics: 'Analytics Operations', logistics: 'Logistics Operations', customer_ops: 'Customer / Client Success Operations', strategy_ops: 'Strategy & Operations', ci: 'Continuous Improvement', systems_automation: 'Business Systems & Automation', program: 'Program Operations & Transformation' };
 /* Named technologies / methodologies / certifications for literal (ATS) coverage — canonical forms after normalization */
@@ -896,13 +877,13 @@ function detectResumeFamilies(resume) {
 
 /* ---------------------------------- JOB DESCRIPTION CLEANING ---------------------------------- */
 const JD_SECTION_HINTS = [
-  ['required', /^(basic|minimum|required|must[-\s]have|essential)\s+(qualifications|requirements|skills)|^(requirements|qualifications|what you('ll| will)? need|what we('re| are)? looking for|who you are|what you bring|your profile|skills (and|&) (experience|qualifications)|experience (and|&) skills|you have|you('ll| will)? bring)\b/i],
-  ['responsibility', /^(responsibilities|key responsibilities|what you('ll| will)? do|the role|role overview|in this role|your responsibilities|duties|job duties|what you('ll| will)? be doing|day to day|essential functions|position summary|job summary|about the role|the opportunity|your impact|how you('ll| will)? make an impact)\b/i],
+  ['required', /^(basic|minimum|required|must[-\s]have|essential)\s+(qualifications|requirements|skills)|^(requirements|qualifications|job requirements|education\s*(?:&|and)\s*experience|experience\s*(?:&|and)\s*education|minimum education|minimum experience|required education|required experience|what you('ll| will)? need|what we('re| are)? looking for|who you are|what you bring|your profile|skills (and|&) (experience|qualifications)|experience (and|&) skills|you have|you('ll| will)? bring)\b/i],
+  ['responsibility', /^(responsibilities|key responsibilities|duties (and|&) responsibilities|essential duties (and|&) responsibilities|what you('ll| will)? do|the role|role overview|in this role|your responsibilities|duties|job duties|what you('ll| will)? be doing|day to day|essential functions|position summary|job summary|about the role|the opportunity|your impact|how you('ll| will)? make an impact)\b/i],
   ['preferred', /^(preferred|nice[-\s]to[-\s]have|bonus|desired|additional|plus|it('s| is) a plus|preferred qualifications|preferred skills|ideally|great to have|extra credit)\b/i],
   ['excluded_benefits', /^(benefits|perks|what we offer|compensation|pay|salary|total rewards|why (join|work)|what('s| is) in it for you|we offer|our benefits)\b/i],
   ['excluded_about', /^(about (us|the company|the team|our company|[a-z0-9&.' -]{2,30}$)|company overview|who we are|our (story|mission|culture|values)|why us)\b/i],
   ['excluded_legal', /^(equal (employment )?opportunity|eeo|diversity|accommodation|privacy|disclaimer|how to apply|application process|to apply|legal|notice)\b/i],
-  ['informational', /^(location|schedule|hours|work environment|physical (demands|requirements)|reporting to|reports to|team|department)\b/i]
+  ['informational', /^(location|schedule|hours|time type|job area|job posting title|work environment|physical (demands|requirements)|other physical requirements|reporting to|reports to|team|department)\b/i]
 ];
 const EXCLUSION_RULES = [
   ['EEO statement', /\b(equal (employment )?opportunity|eeo|without regard to (race|sex|gender)|regardless of (race|color|religion|sex|gender)|protected (veteran|class|characteristic)|affirmative action|discriminat)\b/i],
@@ -938,6 +919,25 @@ const CUES = {
   responsibility: /^(?:[•\-–*\u2022▪◦]\s*)?(lead|manage|own|drive|develop|build|design|partner|collaborate|coordinate|oversee|monitor|analy[sz]e|create|deliver|define|identify|implement|execute|support|maintain|ensure|establish|track|report|present|communicate|optimi[sz]e|improve|serve|act|work|provide|prepare|conduct|facilitate|recommend|evaluate|assess|review|champion|translate|scale|launch|plan|forecast|measure|resolve|triage|handle|run|operate|configure|administer|document|train|mentor|coach|guide|influence|negotiate|standardi[sz]e|automate|streamline|audit)\b/i,
   informational: /\b(this (role|position) (is|will|reports)|reports to|you will (join|be part of|work (with|alongside)|report)|the team|our team|we are (looking|seeking|hiring)|location:|hours:|schedule:|shift:|the ideal candidate)\b/i
 };
+
+const NON_COMPARATIVE_VERIFY_TYPES = new Set(['authorization','location','onsite','hybrid','travel','schedule','physical','environment','human_language','education_floor']);
+const HARD_VERIFY_TYPES = new Set(['years','degree','certification','license','clearance','language','platform']);
+const QUALIFICATION_WORDING_RE = /\b(\d{1,2}\s*\+?\s*(?:years?|yrs?)|one|two|three|four|five|six|seven|eight|nine|ten)\b.*\b(years?|experience)\b|\b(high school|ged|diploma|bachelor|master|degree|certification|license|clearance)\b|\b(proficien(?:t|cy)|demonstrated proficiency|required experience|minimum experience|minimum education)\b/i;
+const SOFT_REQUIREMENT_RE = /\b(adapt(?:ability)?|fast[-\s]?paced|communication skills?|organizational skills?|attention to detail|drive for results|building partnership|motivated|motivation|positive attitude|interpersonal skills?)\b/i;
+const ATS_SINGLETON_ALLOW = new Set(['logistics','warehouse','distribution','wms','tms','dispatch','routing','inbound','outbound','receiving','shipping','inventory','mhe','staffing','productivity','safety','training','budgeting','budget','supervision','leadership','excel','powerpoint','sql','salesforce','tableau','databricks','lean','kaizen','dmaic','sop','kpi','sla','erp','crm']);
+const ATS_PHRASE_ALLOW = new Set(['warehouse operations','warehouse management','distribution operations','supply chain','labor planning','labor management','capacity planning','workforce planning','material handling','material handling equipment','space utilization','customer service','client sla','customer sla','service level','continuous improvement','root cause analysis','quality assurance','quality system','cost control','cost savings','profit and loss','standard operating procedures','sop development','performance management','team development','cross functional leadership','business intelligence','process improvement','operational excellence','management information systems','microsoft office']);
+
+function isNonComparativeRequirement(r) {
+  return !!(r && r.verify && r.verify.some(v => NON_COMPARATIVE_VERIFY_TYPES.has(v.type)));
+}
+function isHardMustHave(r) {
+  if (!r || r.cls !== 'required' || r.excludedByUser || isNonComparativeRequirement(r)) return false;
+  if (r.verify && r.verify.some(v => HARD_VERIFY_TYPES.has(v.type))) return true;
+  const mandatory = /\b(must|required|minimum|at least|demonstrated proficiency|proficient in)\b/i.test(r.text);
+  if (mandatory && r.techTerms && r.techTerms.length) return true;
+  if (mandatory && /\b(warehouse|distribution|logistics|supervisory|management)\s+(?:or\s+)?experience\b/i.test(r.text)) return true;
+  return false;
+}
 function splitRequirementUnits(line) {
   const bare = line.replace(/^[•\-–*\u2022▪◦#>]+\s*/, '').trim();
   const words = bare.split(' ').length;
@@ -946,37 +946,65 @@ function splitRequirementUnits(line) {
 }
 function classifyRequirement(text, section) {
   const t = text; let cls = 'informational', why = [];
+  const preferred = CUES.preferred.test(t);
+  const qualification = QUALIFICATION_WORDING_RE.test(t) || /\b\d{1,2}\s*\+?\s*years?\b/i.test(t);
+
   if (section === 'required') { cls = 'required'; why.push('section: requirements'); }
   else if (section === 'responsibility') { cls = 'responsibility'; why.push('section: responsibilities'); }
   else if (section === 'preferred') { cls = 'preferred'; why.push('section: preferred'); }
-  if (CUES.preferred.test(t)) { cls = 'preferred'; why.push('preferred cue'); }
-  else if (CUES.required.test(t) && cls !== 'responsibility') { cls = 'required'; why.push('required cue'); }
-  else if (CUES.required.test(t) && cls === 'responsibility' && /\b(must|required|minimum|at least)\b/i.test(t)) { cls = 'required'; why.push('required cue'); }
-  if (cls === 'informational') { if (CUES.responsibility.test(t)) { cls = 'responsibility'; why.push('action verb'); } else if (/\b(experience|ability|proficien|knowledge|skills?|degree|certif|years|familiar)\b/i.test(t) && !CUES.informational.test(t)) { cls = 'required'; why.push('qualification wording'); } }
-  if (CUES.informational.test(t) && cls !== 'required' && !CUES.responsibility.test(t)) { cls = 'informational'; why.push('descriptive'); }
-  if (section === 'unknown' && cls === 'required' && !CUES.required.test(t) && !/\b(experience|degree|years|certif|proficien)\b/i.test(t)) { cls = 'responsibility'; }
+
+  if (preferred) { cls = 'preferred'; why.push('preferred cue'); }
+  else if (qualification) { cls = 'required'; why.push('qualification wording'); }
+  else if (CUES.required.test(t) && (cls !== 'responsibility' || /\b(must|required|minimum|at least|mandatory)\b/i.test(t))) {
+    cls = 'required'; why.push('required cue');
+  } else if (cls === 'informational' && CUES.responsibility.test(t)) {
+    cls = 'responsibility'; why.push('action verb');
+  }
+
+  if (CUES.informational.test(t) && cls !== 'required' && !CUES.responsibility.test(t)) {
+    cls = 'informational'; why.push('descriptive');
+  }
+  if (section === 'unknown' && cls === 'informational' && CUES.responsibility.test(t)) {
+    cls = 'responsibility'; why.push('action verb');
+  }
   return { cls, why: why.join(', ') };
 }
 function extractRequirements(blocks, existing) {
-  const prevById = new Map((existing || []).map(r => [r.key, r])); const reqs = []; let n = 0;
+  const prevById = new Map((existing || []).map(r => [r.key, r]));
+  const reqs = [], seen = new Map(); let n = 0;
   for (const b of blocks) {
     if (b.excluded || b.heading) continue;
     for (const unit of splitRequirementUnits(b.text)) {
       const wc = unit.split(' ').length; const norm = normalizeText(unit);
       if (wc < 3 || (wc < 4 && !TECH_TERMS.some(t => norm.includes(t)))) continue;
+      const key = norm;
+      if (seen.has(key)) {
+        const prior = seen.get(key);
+        prior.repeatCount = (prior.repeatCount || 1) + 1;
+        continue;
+      }
       const { cls, why } = classifyRequirement(unit, b.section);
-      const key = norm; const prev = prevById.get(key);
-      const r = { id: n++, key, text: unit, lite: liteNormalize(unit), norm, section: b.section, autoCls: cls, why, cls: prev ? prev.cls : cls, userWeight: prev ? prev.userWeight : null, excludedByUser: prev ? prev.excludedByUser : false, blockId: b.id };
-      r.terms = extractTerms(norm); r.tokens = tokenize(norm); r.techTerms = TECH_TERMS.filter(t => new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(norm));
+      const prev = prevById.get(key);
+      const r = {
+        id: n++, key, text: unit, lite: liteNormalize(unit), norm, section: b.section,
+        autoCls: cls, why, cls: prev ? prev.cls : cls,
+        userWeight: prev ? prev.userWeight : null,
+        excludedByUser: prev ? prev.excludedByUser : false,
+        blockId: b.id, repeatCount: prev?.repeatCount || 1
+      };
+      r.terms = extractTerms(norm); r.tokens = tokenize(norm);
+      r.techTerms = TECH_TERMS.filter(t => new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(norm));
       r.verify = detectVerificationType(unit, r.cls);
-      reqs.push(r);
+      seen.set(key, r); reqs.push(r);
     }
   }
   return reqs;
 }
 function requirementWeight(r, settings) {
   if (r.excludedByUser || r.cls === 'excluded') return 0;
-  const base = settings[CLASS_WEIGHT_KEY[r.cls]] ?? 0; const w = r.userWeight != null ? r.userWeight : base;
+  if (isNonComparativeRequirement(r) && r.userWeight == null) return 0;
+  const base = settings[CLASS_WEIGHT_KEY[r.cls]] ?? 0;
+  const w = r.userWeight != null ? r.userWeight : base;
   return clamp(w * (r.emphasis || 1), 0, 3);
 }
 
@@ -984,7 +1012,12 @@ function requirementWeight(r, settings) {
 function detectVerificationType(text, cls) {
   const t = text; const out = [];
   const yrs = t.match(/\b(\d{1,2})\s?\+?\s?(?:-|–|to)?\s?(\d{1,2})?\s?\+?\s?(?:years?|yrs?)\b/i) || t.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\s?\+?\s?(?:\(\d+\)\s?)?years?\b/i);
-  if (yrs) { const map = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 }; const n = map[String(yrs[1]).toLowerCase()] || parseInt(yrs[1], 10); if (n) out.push({ type: 'years', years: n }); }
+  if (yrs) {
+    const map = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+    const n = map[String(yrs[1]).toLowerCase()] || parseInt(yrs[1], 10);
+    if (n) out.push({ type: 'years', years: n });
+  }
+  if (/\b(high school diploma|high school|general education degree|ged)\b/i.test(t)) out.push({ type: 'education_floor' });
   if (/\b(bachelor|master|mba|ba\b|bs\b|b\.s\.|b\.a\.|m\.s\.|ms\b|phd|doctorate|associate('s)? degree|degree in|undergraduate degree|graduate degree)\b/i.test(t)) out.push({ type: 'degree' });
   if (/\b(pmp|lean six sigma|six sigma|green belt|black belt|cscp|cpim|cscmp|itil|csm|certified|certification|scrum master|cpa|cfa|shrm|apics)\b/i.test(t)) out.push({ type: 'certification' });
   if (/\b(licen[sc]e|licensed|cdl\b|driver'?s license)\b/i.test(t)) out.push({ type: 'license' });
@@ -994,9 +1027,14 @@ function detectVerificationType(text, cls) {
   if (/\b(on[-\s]?site|in[-\s]?office|in person)\b/i.test(t)) out.push({ type: 'onsite' });
   if (/\bhybrid\b/i.test(t)) out.push({ type: 'hybrid' });
   if (/\btravel\b/i.test(t) && /\b(\d+\s?%|up to|willing|ability|required|frequent|occasional|domestic|international|overnight)\b/i.test(t)) out.push({ type: 'travel' });
+  if (/\b(flexible schedules?|nights?|weekends?|overtime|shift work|work overtime|mandatory overtime)\b/i.test(t)) out.push({ type: 'schedule' });
+  if (/\b(lift|carry|push|pull|reach above|reach outward|squat|kneel|bend|stand for|walk for)\b/i.test(t)) out.push({ type: 'physical' });
+  if (/\b(unregulated temperatures?|warmer|colder months|warehouse environment|fumes|airborne particles|noise level|caustic chemicals?|outdoor conditions?)\b/i.test(t)) out.push({ type: 'environment' });
+  if (/\benglish\b/i.test(t) && /\b(read|reading|write|writing|verbal|speak|speaking|oral|fluency|fluent)\b/i.test(t)) out.push({ type: 'human_language' });
+
   const langs = ['sql', 'python', 'r', 'java', 'javascript', 'typescript', 'c#', 'c++', 'scala', 'vba', 'sas', 'matlab', 'go', 'ruby', 'php'];
   const norm = normalizeText(t);
-  if (cls === 'required' && /\b(must|required|proficien|expert|advanced|strong)\b/i.test(t)) {
+  if (cls === 'required' && /\b(must|required|proficien|expert|advanced|strong|demonstrated)\b/i.test(t)) {
     const hit = langs.filter(l => new RegExp('(^|[^a-z0-9+#])' + l.replace(/[+#]/g, '\\$&') + '(?=$|[^a-z0-9+#])').test(norm));
     if (hit.length) out.push({ type: 'language', items: hit });
     const plats = TECH_TERMS.filter(p => !langs.includes(p) && !['api', 'kpi', 'sop', 'crm', 'erp', 'dashboards', 'forecasting', 'business intelligence', 'root cause analysis', 'bachelor', 'master', 'mba'].includes(p) && new RegExp('\\b' + p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(norm));
@@ -1010,46 +1048,127 @@ function resumeYearsSpan(resume) {
   if (!yrs.length) return null; const min = Math.min(...yrs.map(y => y[0])), max = Math.max(...yrs.map(y => y[1])); return { min, max, span: max - min, ranges: yrs.length };
 }
 function verifyAgainstResume(v, req, resume) {
-  const lite = resume.lite; const find = (re) => { const c = resume.chunks.find(ch => re.test(ch.lite)); return c ? c.text : null; };
+  const lite = resume.lite;
+  const find = (re) => { const c = resume.chunks.find(ch => re.test(ch.lite)); return c ? c.text : null; };
   switch (v.type) {
-    case 'years': { const s = resumeYearsSpan(resume); if (!s) return { status: 'Manual Verification Required', evidence: 'No dated employment ranges detected.' }; return s.span >= v.years ? { status: 'Likely Satisfied — Verify', evidence: `Employment history appears to span about ${s.span} years (${s.min}–${s.max}).` } : { status: 'Potentially Satisfied — Verify', evidence: `Detected date ranges span about ${s.span} years (${s.min}–${s.max}); requirement asks for ${v.years}.` }; }
-    case 'degree': { const e = find(/\b(bachelor|master|mba|b\.?s\.?|b\.?a\.?|m\.?s\.?|phd|associate|degree|university|college)\b/i); return e ? { status: 'Likely Satisfied — Verify', evidence: e } : { status: 'No Evidence Found', evidence: '' }; }
-    case 'certification': { const certs = req.norm.match(/\b(pmp|lean six sigma|green belt|black belt|yellow belt|cscp|cpim|itil|csm|cpa|cfa|shrm|apics|scrum master)\b/g) || []; if (!certs.length) { const e = find(/\b(certif|belt)\b/i); return e ? { status: 'Potentially Satisfied — Verify', evidence: e } : { status: 'No Evidence Found', evidence: '' }; } const hit = certs.filter(c => lite.includes(c) || resume.norm.includes(c)); if (hit.length === certs.length) return { status: 'Likely Satisfied — Verify', evidence: find(new RegExp(hit[0].replace(/ /g, '\\s+'), 'i')) || hit.join(', ') }; if (hit.length) return { status: 'Potentially Satisfied — Verify', evidence: 'Found: ' + hit.join(', ') + '; not found: ' + certs.filter(c => !hit.includes(c)).join(', ') }; return { status: 'No Evidence Found', evidence: '' }; }
+    case 'years': {
+      const s = resumeYearsSpan(resume);
+      if (!s) return { status: 'Manual Verification Required', evidence: 'No dated employment ranges detected.' };
+      return s.span >= v.years
+        ? { status: 'Likely Satisfied — Verify', evidence: `Employment history appears to span about ${s.span} years (${s.min}–${s.max}). Confirm that the relevant experience itself meets the requirement.` }
+        : { status: 'Potentially Satisfied — Verify', evidence: `Detected date ranges span about ${s.span} years (${s.min}–${s.max}); requirement asks for ${v.years}.` };
+    }
+    case 'education_floor': {
+      const explicit = find(/\b(high school|ged|general education degree)\b/i);
+      if (explicit) return { status: 'Likely Satisfied — Verify', evidence: explicit };
+      const post = find(/\b(university|college|bachelor|master|associate|degree)\b/i);
+      return post
+        ? { status: 'Potentially Satisfied — Verify', evidence: post + ' — postsecondary education is listed, but the high-school/GED requirement should still be confirmed.' }
+        : { status: 'Manual Verification Required', evidence: 'High-school/GED eligibility is not reliably inferable from the resume.' };
+    }
+    case 'degree': {
+      const explicit = find(/\b(bachelor(?:'s)?|master(?:'s)?|mba|b\.?s\.?|b\.?a\.?|m\.?s\.?|phd|doctorate|associate(?:'s)? degree|degree in)\b/i);
+      if (explicit) return { status: 'Likely Satisfied — Verify', evidence: explicit };
+      const school = find(/\b(university|college)\b/i);
+      return school ? { status: 'Potentially Satisfied — Verify', evidence: school + ' — institution attendance is listed, but degree completion is not proven by the institution name alone.' } : { status: 'No Evidence Found', evidence: '' };
+    }
+    case 'certification': {
+      const certs = req.norm.match(/\b(pmp|lean six sigma|green belt|black belt|yellow belt|cscp|cpim|itil|csm|cpa|cfa|shrm|apics|scrum master)\b/g) || [];
+      if (!certs.length) { const e = find(/\b(certif|belt)\b/i); return e ? { status: 'Potentially Satisfied — Verify', evidence: e } : { status: 'No Evidence Found', evidence: '' }; }
+      const hit = certs.filter(c => lite.includes(c) || resume.norm.includes(c));
+      if (hit.length === certs.length) return { status: 'Likely Satisfied — Verify', evidence: find(new RegExp(hit[0].replace(/ /g, '\\s+'), 'i')) || hit.join(', ') };
+      if (hit.length) return { status: 'Potentially Satisfied — Verify', evidence: 'Found: ' + hit.join(', ') + '; not found: ' + certs.filter(c => !hit.includes(c)).join(', ') };
+      return { status: 'No Evidence Found', evidence: '' };
+    }
     case 'license': { const e = find(/\b(licen[sc]e|cdl)\b/i); return e ? { status: 'Potentially Satisfied — Verify', evidence: e } : { status: 'No Evidence Found', evidence: '' }; }
     case 'clearance': { const e = find(/\b(clearance|secret|ts\/sci)\b/i); return e ? { status: 'Potentially Satisfied — Verify', evidence: e } : { status: 'No Evidence Found', evidence: '' }; }
-    case 'authorization': return { status: 'Manual Verification Required', evidence: 'Work authorization is not inferable from resume text.' };
-    case 'location': { const m = req.text.match(/\b(in|near|to)\s+([A-Z][a-zA-Z.]+(?:,?\s+[A-Z]{2})?)/); const city = m ? m[2] : null; const e = city && lite.includes(city.toLowerCase()) ? city : null; return e ? { status: 'Potentially Satisfied — Verify', evidence: 'Resume mentions ' + e } : { status: 'Manual Verification Required', evidence: 'Location eligibility must be confirmed by you.' }; }
-    case 'onsite': case 'hybrid': case 'travel': return { status: 'Manual Verification Required', evidence: 'Availability for ' + v.type + ' work is a personal decision, not resume evidence.' };
-    case 'language': case 'platform': { const hit = v.items.filter(i => new RegExp('(^|[^a-z0-9+#])' + i.replace(/[+#.]/g, '\\$&') + '(?=$|[^a-z0-9+#])').test(resume.norm)); const miss = v.items.filter(i => !hit.includes(i)); if (!hit.length) return { status: 'No Evidence Found', evidence: 'Not found: ' + miss.join(', ') }; const ex = resume.chunks.find(c => c.section === 'experience' && new RegExp('(^|[^a-z0-9+#])' + hit[0].replace(/[+#.]/g, '\\$&') + '(?=$|[^a-z0-9+#])').test(c.norm)); return { status: miss.length ? 'Potentially Satisfied — Verify' : (ex ? 'Likely Satisfied — Verify' : 'Potentially Satisfied — Verify'), evidence: (ex ? ex.text : 'Listed: ' + hit.join(', ')) + (miss.length ? ' — not found: ' + miss.join(', ') : '') }; }
+    case 'authorization': return { status: 'Manual Verification Required', evidence: 'Work authorization is a personal eligibility item, not resume-version evidence.' };
+    case 'location': {
+      const m = req.text.match(/\b(in|near|to)\s+([A-Z][a-zA-Z.]+(?:,?\s+[A-Z]{2})?)/);
+      const city = m ? m[2] : null; const e = city && lite.includes(city.toLowerCase()) ? city : null;
+      return e ? { status: 'Potentially Satisfied — Verify', evidence: 'Resume mentions ' + e } : { status: 'Manual Verification Required', evidence: 'Location eligibility must be confirmed by you.' };
+    }
+    case 'onsite':
+    case 'hybrid':
+    case 'travel':
+    case 'schedule':
+      return { status: 'Manual Verification Required', evidence: 'Availability for this work arrangement or schedule is a personal eligibility decision, not a resume-version signal.' };
+    case 'physical':
+      return { status: 'Manual Verification Required', evidence: 'Physical capability should be verified directly and is not inferred from resume text.' };
+    case 'environment':
+      return { status: 'Manual Verification Required', evidence: 'Tolerance for the stated work environment should be verified directly and is not inferred from resume text.' };
+    case 'human_language':
+      return { status: 'Manual Verification Required', evidence: 'Language eligibility should be verified directly; absence from a resume is not treated as a resume-fit gap.' };
+    case 'language':
+    case 'platform': {
+      const hit = v.items.filter(i => new RegExp('(^|[^a-z0-9+#])' + i.replace(/[+#.]/g, '\\$&') + '(?=$|[^a-z0-9+#])').test(resume.norm));
+      const miss = v.items.filter(i => !hit.includes(i));
+      if (!hit.length) return { status: 'No Evidence Found', evidence: 'Not found: ' + miss.join(', ') };
+      const ex = resume.chunks.find(c => c.section === 'experience' && new RegExp('(^|[^a-z0-9+#])' + hit[0].replace(/[+#.]/g, '\\$&') + '(?=$|[^a-z0-9+#])').test(c.norm));
+      return { status: miss.length ? 'Potentially Satisfied — Verify' : (ex ? 'Likely Satisfied — Verify' : 'Potentially Satisfied — Verify'), evidence: (ex ? ex.text : 'Listed: ' + hit.join(', ')) + (miss.length ? ' — not found: ' + miss.join(', ') : '') };
+    }
     default: return { status: 'Manual Verification Required', evidence: '' };
   }
 }
 
 /* ---------------------------------- JD CONCEPT EXTRACTION ---------------------------------- */
 function extractConcepts(reqs, blocks, titleInput, settings) {
-  const included = blocks.filter(b => !b.excluded).map(b => b.text).join('\n'); const norm = normalizeText(included);
+  const included = blocks.filter(b => !b.excluded).map(b => b.text).join('\n');
+  const scoringText = reqs.filter(r => requirementWeight(r, settings) > 0).map(r => r.text).join('\n');
+  const norm = normalizeText(scoringText || included);
   const firstLine = blocks.find(b => !b.excluded && !b.heading && b.text.split(' ').length <= 10);
-  let title = titleInput || ''; if (!title) { const m = included.match(/\b(?:job title|position|role)\s*[:\-]\s*([^\n]{3,80})/i); title = m ? m[1].trim() : (firstLine ? firstLine.text : ''); }
+  let title = titleInput || '';
+  if (!title) { const m = included.match(/\b(?:job title|position|role)\s*[:\-]\s*([^\n]{3,80})/i); title = m ? m[1].trim() : (firstLine ? firstLine.text : ''); }
   const seniorityRe = [['Executive', /\b(vp|vice president|chief|cxo|head of|svp|evp)\b/i], ['Director', /\bdirector\b/i], ['Senior Manager', /\bsenior manager|sr\.? manager\b/i], ['Manager', /\bmanager\b/i], ['Lead', /\b(lead|principal|staff)\b/i], ['Senior', /\b(senior|sr\.?)\b/i], ['Associate / Entry', /\b(associate|junior|entry[-\s]level|coordinator|assistant)\b/i]];
   let seniority = 'Unspecified'; for (const [l, re] of seniorityRe) if (re.test(title) || (l !== 'Lead' && re.test(included.slice(0, 400)))) { seniority = l; break; }
   const years = reqs.flatMap(r => r.verify.filter(v => v.type === 'years').map(v => v.years)); const maxYears = years.length ? Math.max(...years) : null;
-  // Emphasis: term frequency across requirements weighted by class, diminishing returns
+
   const emphasis = new Map(); const df = new Map();
-  for (const r of reqs) { if (r.excludedByUser) continue; const w = settings[CLASS_WEIGHT_KEY[r.cls]] ?? 0; for (const [t, c] of r.terms) { emphasis.set(t, (emphasis.get(t) || 0) + w * Math.min(c, 2)); df.set(t, (df.get(t) || 0) + 1); } }
-  const emphasized = [...emphasis.entries()].filter(([t]) => (t.includes(' ') || TECH_SET.has(t) || t.length > 5) && !GENERIC.has(t) && !STOP.has(t) && !/\d/.test(t) && !t.split(' ').some(w => KEY_NOISE.has(w))).map(([t, v]) => ({ term: t, weight: round(Math.log1p(v) * (1 + Math.min(df.get(t), 4) * 0.25), 2), count: df.get(t) })).sort((a, b) => b.weight - a.weight).slice(0, 40);
-  // Requirement emphasis multiplier: requirements containing repeatedly emphasized concepts get a bounded boost
+  for (const r of reqs) {
+    if (r.excludedByUser) continue;
+    const w = requirementWeight(r, settings); if (!w) continue;
+    for (const [t, c] of r.terms) { emphasis.set(t, (emphasis.get(t) || 0) + w * Math.min(c, 2)); df.set(t, (df.get(t) || 0) + 1); }
+  }
+  const emphasized = [...emphasis.entries()]
+    .filter(([t]) => (t.includes(' ') || TECH_SET.has(t) || t.length > 5) && !GENERIC.has(t) && !STOP.has(t) && !/\d/.test(t) && !t.split(' ').some(w => KEY_NOISE.has(w)))
+    .map(([t, v]) => ({ term: t, weight: round(Math.log1p(v) * (1 + Math.min(df.get(t), 4) * 0.25), 2), count: df.get(t) }))
+    .sort((a, b) => b.weight - a.weight).slice(0, 40);
+
   const topTerms = new Set(emphasized.slice(0, 12).filter(e => e.count >= 2).map(e => e.term));
-  for (const r of reqs) { let hits = 0; for (const t of r.terms.keys()) if (topTerms.has(t)) hits++; r.emphasis = 1 + Math.min(hits, 3) * 0.08; }
-  const tools = TECH_TERMS.filter(t => new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(norm)).map(t => ({ term: t, count: (norm.match(new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g')) || []).length, required: reqs.some(r => r.cls === 'required' && r.techTerms.includes(t)) }));
+  for (const r of reqs) {
+    let hits = 0; for (const t of r.terms.keys()) if (topTerms.has(t)) hits++;
+    const repeatBoost = Math.min(0.18, Math.log2(Math.max(1, r.repeatCount || 1)) * 0.09);
+    r.emphasis = 1 + repeatBoost + Math.min(hits, 3) * 0.08;
+  }
+
+  const tools = TECH_TERMS.filter(t => new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(norm))
+    .map(t => ({ term: t, count: (norm.match(new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g')) || []).length, required: reqs.some(r => r.cls === 'required' && requirementWeight(r, settings) > 0 && r.techTerms.includes(t)) }));
   const flags = { degree: reqs.some(r => r.verify.some(v => v.type === 'degree')), certifications: reqs.filter(r => r.verify.some(v => v.type === 'certification')).map(r => r.text), clearance: reqs.some(r => r.verify.some(v => v.type === 'clearance')), authorization: reqs.some(r => r.verify.some(v => v.type === 'authorization')), onsite: /\bon[-\s]?site\b/i.test(included), hybrid: /\bhybrid\b/i.test(included), remote: /\bremote\b/i.test(included), travel: reqs.some(r => r.verify.some(v => v.type === 'travel')), location: (included.match(/\b(location|based in|located in)\s*[:\-]?\s*([A-Z][A-Za-z .]+,\s*[A-Z]{2})/) || [])[2] || '' };
   const families = detectJobFamilies(reqs, settings);
   return { title, seniority, maxYears, emphasized, tools, flags, families, requiredSkills: reqs.filter(r => r.cls === 'required').map(r => r.text), preferredSkills: reqs.filter(r => r.cls === 'preferred').map(r => r.text), responsibilities: reqs.filter(r => r.cls === 'responsibility').map(r => r.text) };
 }
 function detectJobFamilies(reqs, settings) {
   const raw = {}; for (const k of FAMILY_KEYS) raw[k] = 0;
-  for (const r of reqs) { if (r.excludedByUser) continue; const w = (settings[CLASS_WEIGHT_KEY[r.cls]] ?? 0) || 0.1; for (const k of FAMILY_KEYS) { let s = 0; for (const term of FAMILIES[k].terms) if (r.norm.includes(term) && new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(r.norm)) s += 1 + term.split(' ').length * 0.35; raw[k] += Math.min(s, 4) * w; } }
-  const total = sum(Object.values(raw)); const pct = {}; for (const k of FAMILY_KEYS) pct[k] = total > 0 ? raw[k] / total : 0;
-  const list = FAMILY_KEYS.map(k => ({ key: k, label: FAMILIES[k].label, pct: pct[k], raw: raw[k] })).filter(f => f.pct >= 0.03).sort((a, b) => b.pct - a.pct);
+  for (const r of reqs) {
+    if (r.excludedByUser) continue;
+    const w = requirementWeight(r, settings); if (!w) continue;
+    for (const k of FAMILY_KEYS) {
+      const matched = [];
+      for (const term of FAMILIES[k].terms) {
+        const re = new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+        if (re.test(r.norm)) matched.push(term);
+      }
+      matched.sort((a, b) => b.length - a.length);
+      const chosen = [];
+      for (const term of matched) if (!chosen.some(longer => longer !== term && longer.includes(term))) chosen.push(term);
+      const s = chosen.reduce((acc, term) => acc + familyTermWeight(term), 0);
+      raw[k] += Math.min(s, 3.6) * w;
+    }
+  }
+  const total = sum(Object.values(raw)); const pct = {};
+  for (const k of FAMILY_KEYS) pct[k] = total > 0 ? raw[k] / total : 0;
+  const list = FAMILY_KEYS.map(k => ({ key: k, label: FAMILIES[k].label, pct: pct[k], raw: raw[k] }))
+    .filter(f => f.pct >= 0.03).sort((a, b) => b.pct - a.pct);
   return { pct, list, total };
 }
 
@@ -1092,11 +1211,24 @@ function sectionFactor(section, kind, settings) { let f = 1; if (section === 'pr
 const KEY_VERBS = new Set('build building give giving drive driving present presenting lead leading own owning partner partnering manage managing define defining develop developing deliver delivering ensure ensuring support supporting maintain maintaining create creating provide providing work working identify identifying execute executing coordinate coordinating collaborate collaborating oversee overseeing monitor monitoring track tracking communicate communicating'.split(' '));
 const KEY_NOISE = new Set(['years', 'year', 'experience', 'skills', 'skill', 'strong', 'ability', 'proven', 'demonstrated', 'including', 'similar', 'required', 'preferred', 'plus', 'knowledge', 'familiarity', 'excellent', 'advanced', 'minimum', 'degree', 'bachelor', 'master', 'certification']);
 function requirementKeyTerms(r) {
-  const keys = new Set(r.techTerms); const isClean = (w) => !STOP.has(w) && !GENERIC.has(w) && !KEY_NOISE.has(w) && !/\d/.test(w) && w.length >= 3;
-  for (const k of FAMILY_KEYS) for (const term of FAMILIES[k].terms) if (term.includes(' ') && r.norm.includes(term) && new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(r.norm)) keys.add(term);
-  const grams = []; for (const [t] of r.terms) { if (!t.includes(' ')) continue; const ws = t.split(' '); if (ws.length !== 2 || !ws.every(isClean) || KEY_VERBS.has(ws[0]) || KEY_VERBS.has(ws[1])) continue; if ([...keys].some(k => k.includes(t) || t.includes(k))) continue; grams.push(t); }
-  for (const g of grams.slice(0, 3)) keys.add(g);
-  return [...keys].filter(t => !GENERIC.has(t)).slice(0, 10);
+  const keys = new Set(r.techTerms || []);
+  const addIfPresent = (term) => {
+    const re = new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+    if (re.test(r.norm)) keys.add(term);
+  };
+
+  for (const k of FAMILY_KEYS) {
+    for (const term of FAMILIES[k].terms) {
+      if (term.includes(' ') || ATS_SINGLETON_ALLOW.has(term)) addIfPresent(term);
+    }
+  }
+  for (const term of ATS_PHRASE_ALLOW) addIfPresent(term);
+  for (const term of ATS_SINGLETON_ALLOW) addIfPresent(term);
+
+  return [...keys]
+    .filter(t => !GENERIC.has(t) && !STOP.has(t))
+    .sort((a, b) => (TECH_SET.has(b) - TECH_SET.has(a)) || b.split(' ').length - a.split(' ').length || a.localeCompare(b))
+    .slice(0, 12);
 }
 function contentTokens(r) { return uniq(r.tokens.filter(w => !STOP.has(w) && !GENERIC.has(w) && !KEY_NOISE.has(w) && !/\d/.test(w) && w.length >= 3)); }
 function literalEvidence(r, resume, corpus) {
@@ -1116,24 +1248,74 @@ function literalEvidence(r, resume, corpus) {
 function evidenceLevel(sem, lit, bestChunk) { if (lit.found.length && lit.found.length >= Math.max(1, lit.keys.length * 0.6)) return 'Exact Match'; if (lit.equivalent.length && (lit.found.length + lit.equivalent.length) >= Math.max(1, lit.keys.length * 0.6)) return 'Normalized Equivalent'; if (sem >= 0.72) return 'Strong Semantic Match'; if (sem >= 0.3 || lit.found.length || lit.equivalent.length) return 'Related Concept'; return 'No Evidence'; }
 function matchRequirementToResume(r, resume, semantic, calib, settings, corpus, rerank) {
   const lit = literalEvidence(r, resume, corpus);
+
+  // Personal eligibility / physical / scheduling items do not distinguish resume variants.
+  if (isNonComparativeRequirement(r)) {
+    const v = r.verify[0];
+    const vr = v ? verifyAgainstResume(v, r, resume) : { status: 'Manual Verification Required', evidence: '' };
+    let best = vr.evidence ? resume.chunks.find(c => c.text === vr.evidence || vr.evidence.startsWith(c.text)) || null : null;
+    const detFeatures = [0, 0, 0, 0, 0, 0, settings[CLASS_WEIGHT_KEY[r.cls]] ?? 0, resume.familyAlign || 0, 0];
+    return { reqId: r.id, strength: 0, verified: vr.evidence || null, status: 'Manual Verification', level: vr.status, rawCos: null, semStrength: 0, litStrength: 0, chunk: best, section: best ? best.section : '', exact: [], equivalent: [], keys: lit.keys, concepts: [], features: detFeatures, manualOnly: true };
+  }
+
   let rawCos = null, semStrength = 0, semChunk = null;
-  if (semantic) { rawCos = semantic.cos; semChunk = resume.chunks[semantic.idx] || null; semStrength = calibrateCos(rawCos, calib, settings.semanticStrength); if (semChunk) semStrength *= sectionFactor(semChunk.section, semChunk.kind, settings); }
-  let litStrength = lit.strength; if (lit.bestChunk) litStrength *= sectionFactor(lit.bestChunk.section, lit.bestChunk.kind, settings) * (lit.bestChunk.section === 'skills' ? 0.9 : 1);
+  if (semantic) {
+    rawCos = semantic.cos; semChunk = resume.chunks[semantic.idx] || null;
+    semStrength = calibrateCos(rawCos, calib, settings.semanticStrength);
+    if (semChunk) semStrength *= sectionFactor(semChunk.section, semChunk.kind, settings);
+  }
+
+  let litStrength = lit.strength;
+  if (lit.bestChunk) litStrength *= sectionFactor(lit.bestChunk.section, lit.bestChunk.kind, settings) * (lit.bestChunk.section === 'skills' ? 0.9 : 1);
   if (lit.found.length) litStrength = Math.min(1, litStrength * settings.exactBoost);
-  let strength = clamp(Math.max(semStrength, litStrength) + 0.12 * Math.min(semStrength, litStrength), 0, 1);
-  // Semantic-only hits with a strictly named tool missing are capped (embeddings must not hide absent required terms)
-  const techKeys = lit.keys.filter(t => TECH_SET.has(t)); if (techKeys.length && !techKeys.some(t => lit.found.includes(t) || lit.equivalent.includes(t))) strength = Math.min(strength, r.cls === 'required' ? 0.4 : 0.55);
-  let best = semStrength >= litStrength ? (semChunk || lit.bestChunk) : (lit.bestChunk || semChunk); let verified = null;
-  // Factual requirements (years, degree, certification...) take evidence from the verification layer, not from similarity alone
-  const factual = r.verify.filter(v => ['years', 'degree', 'certification', 'license', 'clearance'].includes(v.type));
-  for (const v of factual) { const vr = verifyAgainstResume(v, r, resume); if (/Likely/.test(vr.status)) { strength = Math.max(strength, 0.75); verified = vr; } else if (/Potentially/.test(vr.status)) { strength = Math.max(strength, 0.5); verified = vr; } }
-  if (verified && verified.evidence && !best) { const ch = resume.chunks.find(c => c.text === verified.evidence); if (ch) best = ch; }
+
+  const techKeys = lit.keys.filter(t => TECH_SET.has(t));
+  const namedTechPresent = techKeys.some(t => lit.found.includes(t) || lit.equivalent.includes(t));
+
+  // Guard semantic-only matches: a neural resemblance with no lexical or functional anchor is related context, not proof.
+  if (semChunk && !lit.found.length && !lit.equivalent.length) {
+    const reqFam = familyKeysInText(r.norm), chunkFam = familyKeysInText(semChunk.norm);
+    const sharedFamily = [...reqFam].some(k => chunkFam.has(k));
+    if (!sharedFamily) semStrength = Math.min(semStrength, 0.47);
+    else semStrength = Math.min(semStrength, ['experience','projects','accomplishments'].includes(semChunk.section) ? 0.68 : 0.60);
+  }
+
+  let strength = clamp(Math.max(semStrength, litStrength) + 0.10 * Math.min(semStrength, litStrength), 0, 1);
+
+  // Required named systems/tools cannot be "semantically satisfied" if the named item is absent.
+  if (r.cls === 'required' && techKeys.length && !namedTechPresent) strength = Math.min(strength, 0.20);
+  else if (techKeys.length && !namedTechPresent) strength = Math.min(strength, 0.45);
+
+  let best = semStrength >= litStrength ? (semChunk || lit.bestChunk) : (lit.bestChunk || semChunk);
+  let verified = null;
+  const factual = r.verify.filter(v => ['years', 'degree', 'certification', 'license', 'clearance', 'language', 'platform'].includes(v.type));
+  for (const v of factual) {
+    const vr = verifyAgainstResume(v, r, resume);
+    if (/Likely/.test(vr.status)) { strength = Math.max(strength, 0.75); verified = vr; }
+    else if (/Potentially/.test(vr.status)) { strength = Math.max(strength, 0.50); verified = vr; }
+    else if (/No Evidence/.test(vr.status) && ['language','platform','certification','license','clearance'].includes(v.type) && r.cls === 'required') strength = Math.min(strength, 0.20);
+  }
+  if (verified && verified.evidence) {
+    const ch = resume.chunks.find(c => verified.evidence === c.text || verified.evidence.startsWith(c.text));
+    if (ch) best = ch;
+  }
+
   const detFeatures = [safe(rawCos, 0), semStrength, best?.section === 'profile' ? 1 : 0, best?.section === 'skills' ? 1 : 0, ['experience', 'projects', 'accomplishments'].includes(best?.section) ? 1 : 0, lit.keys.length ? (lit.found.length + lit.equivalent.length) / lit.keys.length : 0, settings[CLASS_WEIGHT_KEY[r.cls]] ?? 0, resume.familyAlign || 0, mean(lit.keys.map(k => corpus.disc(k))) || 0];
-  if (rerank && typeof rerank === 'number') strength = clamp(0.7 * strength + 0.3 * rerank, 0, 1);
+  if (rerank && typeof rerank === 'number') strength = clamp(0.75 * strength + 0.25 * rerank, 0, 1);
   const level = verified ? 'Verification: ' + verified.status : evidenceLevel(semStrength, lit, best);
-  return { reqId: r.id, strength, verified: verified ? verified.evidence : null, status: strengthStatus(strength), level, rawCos, semStrength, litStrength, chunk: best, section: best ? best.section : '', exact: lit.found, equivalent: lit.equivalent, keys: lit.keys, concepts: best ? uniq([...best.achievements, ...familyConceptsIn(best.norm)]).slice(0, 6) : [], features: detFeatures };
+  return { reqId: r.id, strength, verified: verified ? verified.evidence : null, status: strengthStatus(strength), level, rawCos, semStrength, litStrength, chunk: best, section: best ? best.section : '', exact: lit.found, equivalent: lit.equivalent, keys: lit.keys, concepts: best ? uniq([...best.achievements, ...familyConceptsIn(best.norm)]).slice(0, 6) : [], features: detFeatures, manualOnly: false };
 }
 function familyConceptsIn(norm) { const out = []; for (const k of FAMILY_KEYS) for (const t of FAMILIES[k].terms) if (t.includes(' ') && norm.includes(t)) out.push(t); return uniq(out); }
+function familyKeysInText(norm) {
+  const out = new Set();
+  for (const k of FAMILY_KEYS) {
+    for (const t of FAMILIES[k].terms) {
+      const re = new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+      if (re.test(norm)) { out.add(k); break; }
+    }
+  }
+  return out;
+}
 
 /* ---------------------------------- KEYWORD / ATS COVERAGE ---------------------------------- */
 function buildJdTermList(reqs, concepts, settings) {
@@ -1152,11 +1334,30 @@ function keywordCoverage(terms, resume, settings) {
 /* ---------------------------------- FUNCTIONAL & CORPUS-AWARE ALIGNMENT ---------------------------------- */
 function functionalAlignment(resume, resumes, jdFamilies, jdTerms, corpus, settings) {
   const fam = resume.families.pct; const perFam = {};
-  for (const k of FAMILY_KEYS) { const maxLib = Math.max(...resumes.map(r => r.families.pct[k])) || 0; const rel = maxLib > 0 ? fam[k] / maxLib : 0; const abs = clamp(fam[k] / 0.25, 0, 1); perFam[k] = resumes.length > 1 ? 0.65 * rel + 0.35 * abs : abs; }
-  let famAlign = 0, famDen = 0; for (const f of jdFamilies.list) { famAlign += f.pct * perFam[f.key]; famDen += f.pct; } famAlign = famDen > 0 ? famAlign / famDen : 0;
-  // Discriminative overlap: JD terms present in this resume, weighted by importance × corpus discrimination (^strength), boosted for profile/skills placement
+  for (const k of FAMILY_KEYS) {
+    const maxLib = Math.max(...resumes.map(r => r.families.pct[k])) || 0;
+    const rel = maxLib > 0 ? fam[k] / maxLib : 0;
+    const abs = clamp(fam[k] / 0.25, 0, 1);
+    perFam[k] = resumes.length > 1 ? 0.55 * rel + 0.45 * abs : abs;
+  }
+  let famAlign = 0, famDen = 0;
+  for (const f of jdFamilies.list) { famAlign += f.pct * perFam[f.key]; famDen += f.pct; }
+  famAlign = famDen > 0 ? famAlign / famDen : 0;
+
+  // Give the primary professional family a modest anchor so secondary shared themes cannot swamp the job's core discipline.
+  const primary = jdFamilies.list[0];
+  if (primary && primary.pct >= 0.25) famAlign = 0.82 * famAlign + 0.18 * perFam[primary.key];
+
   const stats = corpus.perResume.get(resume.id); let disc = 0, discDen = 0; const boosted = [], downweighted = [];
-  for (const { term, importance } of jdTerms) { const d = Math.pow(corpus.disc(term), settings.corpusStrength); discDen += importance; const present = stats.terms.has(term) || new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(resume.norm); if (!present) continue; const boost = stats.profSkill.has(term) ? 1.25 : 1; disc += importance * d * boost; if (d >= 0.5) boosted.push(term); else if (corpus.N > 1 && d < 0.2) downweighted.push(term); }
+  for (const { term, importance } of jdTerms) {
+    const d = Math.pow(corpus.disc(term), settings.corpusStrength);
+    discDen += importance;
+    const present = stats.terms.has(term) || new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(resume.norm);
+    if (!present) continue;
+    const boost = stats.profSkill.has(term) ? 1.18 : 1;
+    disc += importance * d * boost;
+    if (d >= 0.5) boosted.push(term); else if (corpus.N > 1 && d < 0.2) downweighted.push(term);
+  }
   return { perFam, famAlign, discRaw: discDen > 0 ? disc / discDen : 0, boosted, downweighted };
 }
 
@@ -1172,47 +1373,115 @@ function activeWeights(settings) {
   const total = sum(comps.map(c => c[1])); const out = {}; for (const [k, v] of comps) out[k] = total > 0 ? v / total : 0.25; return out;
 }
 function tierLabel(score, s) { if (score >= s.tierExceptional) return 'Exceptional Alignment'; if (score >= s.tierStrong) return 'Strong Alignment'; if (score >= s.tierGood) return 'Good Alignment'; if (score >= s.tierModerate) return 'Moderate / Stretch Alignment'; if (score >= s.tierWeak) return 'Weak / Partial Alignment'; return 'Poor Alignment'; }
+
+function feedbackForMatch(r, resume, match, settings) {
+  const chunkText = match && match.chunk ? match.chunk.text : '';
+  return state.feedback.find(f => f.reqKey === r.key && f.resumeId === resume.id && f.modelId === settings.modelId && (f.chunkText || '') === chunkText) || null;
+}
+function applyFeedbackAdjudication(r, resume, match, settings) {
+  const fb = feedbackForMatch(r, resume, match, settings);
+  if (!fb) return match;
+  match.feedbackLabel = fb.label;
+  match.modelStrength = match.strength;
+  if (fb.label === 0) {
+    match.strength = 0;
+    match.status = 'Rejected by you';
+    match.level = 'Manual feedback: Incorrect evidence';
+  } else {
+    match.level = match.level + ' · Confirmed by you';
+  }
+  return match;
+}
+
 function scoreResume(resume, ctx) {
-  const { reqs, settings, corpus, resumes, jdTerms, concepts, calib, semantic, rerankMap, fallback } = ctx;
+  const { reqs, settings, corpus, resumes, jdTerms, concepts, calib, semantic, rerankMap } = ctx;
   const activeReqs = reqs.filter(r => requirementWeight(r, settings) > 0);
   const matches = {}; let covNum = 0, covDen = 0; const mustGaps = [];
+
   for (const r of reqs) {
     const semRes = semantic && semantic.perDoc[resume.id] ? { cos: semantic.perDoc[resume.id].best[r.id], idx: semantic.perDoc[resume.id].bestIdx[r.id] } : null;
     const rr = rerankMap ? rerankMap.get(r.id + '|' + resume.id) : null;
-    const m = matchRequirementToResume(r, resume, semRes, calib, settings, corpus, rr); matches[r.id] = m;
-    const w = requirementWeight(r, settings); if (!w) continue; covNum += w * m.strength; covDen += w;
-    if (r.cls === 'required' && m.strength < 0.25 && !r.verify.some(v => ['authorization', 'location', 'onsite', 'hybrid', 'travel'].includes(v.type))) mustGaps.push(r);
+    let m = matchRequirementToResume(r, resume, semRes, calib, settings, corpus, rr);
+    m = applyFeedbackAdjudication(r, resume, m, settings);
+    matches[r.id] = m;
+
+    const w = requirementWeight(r, settings); if (!w) continue;
+    covNum += w * m.strength; covDen += w;
+    if (isHardMustHave(r) && m.strength < 0.25) mustGaps.push(r);
   }
+
   const coverage = covDen > 0 ? covNum / covDen : 0;
   const kw = keywordCoverage(jdTerms, resume, settings);
-  const fa = functionalAlignment(resume, resumes, concepts.families, jdTerms, corpus, settings); resume.familyAlign = fa.famAlign;
+  const fa = functionalAlignment(resume, resumes, concepts.families, jdTerms, corpus, settings);
+  resume.familyAlign = fa.famAlign;
+
   let overallCos = null, overall = 0;
-  if (semantic && semantic.overall[resume.id] != null) { overallCos = semantic.overall[resume.id]; overall = calibrateCos(overallCos, { floor: calib.floor - 0.1, strong: calib.strong + 0.05 }, 1); }
-  else { const qTerms = new Map(); for (const r of activeReqs) for (const [t, c] of r.terms) if (!t.includes(' ') && !GENERIC.has(t)) qTerms.set(t, (qTerms.get(t) || 0) + c); const dTerms = new Map([...corpus.perResume.get(resume.id).terms].filter(([t]) => !t.includes(' ') && !GENERIC.has(t))); overallCos = tfidfCosine(qTerms, dTerms, corpus.idf); overall = clamp((overallCos - 0.03) / 0.32, 0, 1); }
-  // Features
-  const reqCov = (cls) => { const rs = activeReqs.filter(r => r.cls === cls); return rs.length ? mean(rs.map(r => matches[r.id].strength)) : null; };
+  if (semantic && semantic.overall[resume.id] != null) {
+    overallCos = semantic.overall[resume.id];
+    overall = calibrateCos(overallCos, { floor: calib.floor - 0.1, strong: calib.strong + 0.05 }, 1);
+  } else {
+    const qTerms = new Map();
+    for (const r of activeReqs) for (const [t, c] of r.terms) if (!t.includes(' ') && !GENERIC.has(t)) qTerms.set(t, (qTerms.get(t) || 0) + c);
+    const dTerms = new Map([...corpus.perResume.get(resume.id).terms].filter(([t]) => !t.includes(' ') && !GENERIC.has(t)));
+    overallCos = tfidfCosine(qTerms, dTerms, corpus.idf);
+    overall = clamp((overallCos - 0.03) / 0.32, 0, 1);
+  }
+
+  const reqCov = (cls) => {
+    const rs = activeReqs.filter(r => r.cls === cls);
+    return rs.length ? mean(rs.map(r => matches[r.id].strength)) : null;
+  };
   const leadership = clamp(((resume.lite.match(LEADERSHIP_RE) || []).length) / 12, 0, 1);
   const seniority = resumeSeniority(resume);
   const titleSim = jaccard(tokenize(normalizeText(concepts.title || '')).filter(t => !STOP.has(t)), tokenize(resume.chunks.filter(c => c.section === 'profile' || c.pos < 4).map(c => c.norm).join(' ')).filter(t => !STOP.has(t)));
-  const toolsReq = concepts.tools.filter(t => t.required); const toolsHit = concepts.tools.filter(t => new RegExp('\\b' + t.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(resume.norm));
-  const features = { tfidf: round(overallCos ?? 0, 3), bm25: round(mean(reqs.map(r => literalEvidence(r, resume, corpus).bm)), 2), requiredCoverage: reqCov('required'), preferredCoverage: reqCov('preferred'), responsibilityCoverage: reqCov('responsibility'), exactPhraseCoverage: kw.exact.length / Math.max(1, jdTerms.length), aliasCoverage: kw.equivalent.length / Math.max(1, jdTerms.length), titleSim, seniority, seniorityAlign: seniorityAlign(concepts.seniority, seniority), leadership, tools: concepts.tools.length ? toolsHit.length / concepts.tools.length : null, requiredTools: toolsReq.length ? toolsReq.filter(t => toolsHit.some(h => h.term === t.term)).length / toolsReq.length : null, mustGaps: mustGaps.length, achievementConcepts: uniq(resume.chunks.flatMap(c => c.achievements)).length };
-  // Composite
+  const toolsReq = concepts.tools.filter(t => t.required);
+  const toolsHit = concepts.tools.filter(t => new RegExp('\\b' + t.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(resume.norm));
+  const features = {
+    tfidf: round(overallCos ?? 0, 3),
+    bm25: round(mean(activeReqs.map(r => literalEvidence(r, resume, corpus).bm)), 2),
+    requiredCoverage: reqCov('required'), preferredCoverage: reqCov('preferred'), responsibilityCoverage: reqCov('responsibility'),
+    exactPhraseCoverage: kw.exact.length / Math.max(1, jdTerms.length), aliasCoverage: kw.equivalent.length / Math.max(1, jdTerms.length),
+    titleSim, seniority, seniorityAlign: seniorityAlign(concepts.seniority, seniority), leadership,
+    tools: concepts.tools.length ? toolsHit.length / concepts.tools.length : null,
+    requiredTools: toolsReq.length ? toolsReq.filter(t => toolsHit.some(h => h.term === t.term)).length / toolsReq.length : null,
+    mustGaps: mustGaps.length, achievementConcepts: uniq(resume.chunks.flatMap(c => c.achievements)).length
+  };
   const W = activeWeights(settings);
-  const funcRaw = fa.famAlign; // discriminative overlap is normalized across the library after all resumes are scored
-  const partial = { semantic: coverage, keyword: kw.score, functionalFam: funcRaw, functionalDisc: fa.discRaw, overall };
+  const partial = { semantic: coverage, keyword: kw.score, functionalFam: fa.famAlign, functionalDisc: fa.discRaw, overall };
   const penalty = Math.min(20, mustGaps.length * settings.mustHavePenalty);
   return { resumeId: resume.id, matches, coverage, keyword: kw, functional: fa, overall, overallCos, features, partial, penalty, mustGaps: mustGaps.map(r => r.id), W, perFam: fa.perFam, seniority };
 }
 function finalizeScores(results, settings) {
   const maxDisc = Math.max(...results.map(r => r.partial.functionalDisc)) || 0;
   for (const r of results) {
-    const discNorm = maxDisc > 0 ? r.partial.functionalDisc / maxDisc : 0.5;
-    r.functionalScore = clamp(0.6 * r.partial.functionalFam + 0.4 * discNorm, 0, 1); r.discNorm = discNorm;
+    const discRel = maxDisc > 0 ? r.partial.functionalDisc / maxDisc : 0;
+    const discAbs = clamp(r.partial.functionalDisc / 0.35, 0, 1);
+    const discScore = clamp(0.65 * discAbs + 0.35 * discRel, 0, 1);
+    r.discNorm = discScore;
+
+    // Functional score is driven primarily by the actual job family; corpus uniqueness is supporting evidence, not a substitute.
+    r.functionalScore = clamp(
+      0.72 * r.partial.functionalFam +
+      0.18 * discScore +
+      0.06 * r.features.seniorityAlign +
+      0.04 * r.features.titleSim,
+      0, 1
+    );
+
     const raw = 100 * (r.W.semantic * r.partial.semantic + r.W.keyword * r.partial.keyword + r.W.functional * r.functionalScore + r.W.overall * r.partial.overall);
-    r.rawScore = round(raw, 1); r.score = clamp(round(raw - r.penalty, 1), 0, 100); r.tier = tierLabel(r.score, settings);
-    r.components = { 'Requirement Coverage': r.partial.semantic, 'Keyword / ATS Coverage': r.partial.keyword, 'Functional Alignment': r.partial.functionalFam, 'Corpus Discrimination': discNorm, 'Overall Semantic Alignment': r.partial.overall };
+    r.rawScore = round(raw, 1);
+    r.score = clamp(round(raw - r.penalty, 1), 0, 100);
+    r.tier = tierLabel(r.score, settings);
+    r.components = {
+      'Requirement Coverage': r.partial.semantic,
+      'Keyword / ATS Coverage': r.partial.keyword,
+      'Functional Alignment': r.partial.functionalFam,
+      'Corpus Discrimination': discScore,
+      'Overall Semantic Alignment': r.partial.overall
+    };
   }
-  results.sort((a, b) => b.score - a.score || a.resumeId.localeCompare(b.resumeId)); results.forEach((r, i) => r.rank = i + 1);
+  results.sort((a, b) => b.score - a.score || a.resumeId.localeCompare(b.resumeId));
+  results.forEach((r, i) => r.rank = i + 1);
   return results;
 }
 
@@ -1222,7 +1491,7 @@ function crossLibrary(results, reqs, settings, resumes, jdTerms) {
   const top = results[0];
   for (const r of reqs) { const w = requirementWeight(r, settings); let best = null; for (const res of results) { const m = res.matches[r.id]; if (!best || m.strength > best.m.strength) best = { res, m }; } const topM = top.matches[r.id];
     rows.push({ req: r, weight: w, best: best.m, bestResume: byId.get(best.res.resumeId), topMatch: topM, diff: best.m.strength - topM.strength });
-    if (w) { num += w * best.m.strength; den += w; if (r.cls === 'required' && best.m.strength < 0.25) libGaps.push(r); } }
+    if (w) { num += w * best.m.strength; den += w; if (isHardMustHave(r) && best.m.strength < 0.25) libGaps.push(r); } }
   const bestCoverage = den > 0 ? num / den : 0;
   // Union keyword coverage & max of other components
   let kwNum = 0, kwDen = 0; for (const { term, importance } of jdTerms) { kwDen += importance; const anyExact = results.some(x => x.keyword.exact.includes(term)); const anyEq = results.some(x => x.keyword.equivalent.includes(term)); kwNum += importance * (anyExact ? 1 : anyEq ? 0.85 : 0); }
@@ -1234,7 +1503,7 @@ function crossLibrary(results, reqs, settings, resumes, jdTerms) {
 function customResumeAnalysis(results, cross, reqs, settings) {
   const top = results[0]; const gain = round(cross.bae - top.score, 1);
   const oppLevel = gain >= settings.oppHigh ? 'High Custom Resume Opportunity' : gain >= settings.oppStrong ? 'Strong Custom Resume Opportunity' : gain >= settings.oppModerate ? 'Moderate Custom Resume Opportunity' : 'Low Custom Resume Opportunity';
-  const required = reqs.filter(r => r.cls === 'required' && requirementWeight(r, settings) > 0);
+  const required = reqs.filter(r => isHardMustHave(r) && requirementWeight(r, settings) > 0);
   const libGapRatio = required.length ? cross.libGaps.length / required.length : 0;
   const poorlyPackaged = cross.rows.filter(x => x.weight > 0 && x.diff >= 0.25 && x.best.strength >= 0.48);
   const triggered = top.score < settings.customThreshold;
@@ -1253,7 +1522,7 @@ function explainRanking(res, results, ctx) {
   const { concepts, reqs, resumes } = ctx; const resume = resumes.find(r => r.id === res.resumeId);
   const topFam = concepts.families.list.slice(0, 3);
   const strongReqs = reqs.filter(r => requirementWeight(r, ctx.settings) > 0).map(r => ({ r, m: res.matches[r.id] })).filter(x => x.m.strength >= 0.72).sort((a, b) => b.m.strength - a.m.strength);
-  const gaps = reqs.filter(r => r.cls === 'required' && requirementWeight(r, ctx.settings) > 0).map(r => ({ r, m: res.matches[r.id] })).filter(x => x.m.strength < 0.25);
+  const gaps = reqs.filter(r => isHardMustHave(r) && requirementWeight(r, ctx.settings) > 0).map(r => ({ r, m: res.matches[r.id] })).filter(x => x.m.strength < 0.25);
   const bestFams = FAMILY_KEYS.filter(k => concepts.families.pct[k] >= 0.05).sort((a, b) => res.perFam[b] - res.perFam[a]);
   const strongestFam = bestFams.length ? famName(bestFams[0]) : null; const weakestFam = bestFams.length > 1 ? famName(bestFams[bestFams.length - 1]) : null;
   const leaderIn = FAMILY_KEYS.filter(k => concepts.families.pct[k] >= 0.05 && results.every(o => o === res || res.perFam[k] >= o.perFam[k]));
@@ -1335,7 +1604,7 @@ const WorkerClient = (() => {
     if (worker) return worker;
     if (typeof Worker === 'undefined') throw new Error('Web Workers are not available in this browser.');
     const src = $('rml-worker').textContent; const blob = new Blob([src], { type: 'text/javascript' }); const url = URL.createObjectURL(blob);
-    worker = new Worker(url, { type: 'module' });
+    worker = new Worker(url);
     worker.onmessage = (ev) => { const m = ev.data; if (m.type === 'LOG') { state.workerLog.push(m.message); return; }
       if (m.type === 'MODEL_PROGRESS') { modelProgressHandler && modelProgressHandler(m); return; }
       if (m.type === 'EMBED_PROGRESS') { const p = pending.get(m.reqId); p && p.onProgress && p.onProgress(m); return; }
@@ -1443,7 +1712,7 @@ function stopTimer() { clearInterval(state.timerHandle); $('st-elapsed').textCon
 function prepareResumeDerived(resume) { const avg = mean(resume.chunks.map(c => c.wordCount)) || 1; resume.avgChunkLen = avg; for (const c of resume.chunks) if (!c.termCounts) c.termCounts = extractTerms(c.norm); }
 async function runAnalysis() {
   if (analyzing) return; if (!state.resumes.length || !state.jd.reqs.length) return;
-  analyzing = true; $('btn-analyze').disabled = true; startTimer(); renderRecEmpty(); $('results').classList.remove('hidden');
+  analyzing = true; $('btn-analyze').disabled = true; startTimer(); $('results').classList.remove('hidden');
   try {
     const settings = state.settings; const reqs = state.jd.reqs; const resumes = state.resumes; resumes.forEach(prepareResumeDerived);
     setProgress(2, 'Cleaning job description and extracting requirements');
@@ -1472,7 +1741,7 @@ async function runAnalysis() {
     setProgress(100, 'Complete'); toast('Analysis complete');
     markStep(3); markStep(4);
   } catch (e) { console.error(e); alertBox('bad', 'Analysis failed: ' + e.message, 'analysis'); setProgress(0, 'Failed'); }
-  finally { analyzing = false; stopTimer(); updateAnalyzeButton(); updateStatus(); renderRecEmpty(); }
+  finally { analyzing = false; stopTimer(); updateAnalyzeButton(); updateStatus(); }
 }
 function computeOverall(semantic, reqs, settings) {
   const d = semantic.dims; const q = semantic.queryVectors; const qc = new Float32Array(d); let ws = 0;
@@ -1497,7 +1766,7 @@ async function rescore(full) {
   finalizeScores(results, settings);
   a.results = results; a.ctx = ctx; a.cross = crossLibrary(results, reqs, settings, resumes, a.jdTerms); a.custom = customResumeAnalysis(results, a.cross, reqs, settings);
   a.confidence = confidenceLabel(results);
-  a.verifyItems = []; for (const r of reqs) { if (requirementWeight(r, settings) === 0) continue; for (const v of r.verify) { const per = resumes.map(res => ({ resume: res, ...verifyAgainstResume(v, r, res) })); const top = per.find(p => p.resume.id === results[0].resumeId); a.verifyItems.push({ req: r, v, per, status: top.status, evidence: top.evidence }); } }
+  a.verifyItems = []; for (const r of reqs) { if (r.excludedByUser) continue; for (const v of r.verify) { const per = resumes.map(res => ({ resume: res, ...verifyAgainstResume(v, r, res) })); const top = per.find(p => p.resume.id === results[0].resumeId); a.verifyItems.push({ req: r, v, per, status: top.status, evidence: top.evidence }); } }
   a.blueprint = buildBlueprint(results, a.cross, reqs, { resumes, concepts: a.concepts, settings, verifyItems: a.verifyItems, jdTerms: a.jdTerms });
   for (const res of results) res.explanation = explainRanking(res, results, ctx);
   renderResults(); renderVerify(); updateStatus();
@@ -1505,16 +1774,49 @@ async function rescore(full) {
 
 /* ---------------------------------- LOCAL LEARNING (feedback → tiny MLP in worker) ---------------------------------- */
 async function addFeedback(reqId, resumeId, label) {
-  const a = state.analysis; if (!a) return; const res = a.results.find(r => r.resumeId === resumeId); const m = res.matches[reqId]; const r = state.jd.reqs[reqId];
-  const existing = state.feedback.find(f => f.reqKey === r.key && f.resumeId === resumeId && f.modelId === state.settings.modelId);
-  if (existing) { existing.label = label; existing.features = m.features; await Storage.put('feedback', existing).catch(() => {}); }
-  else { const rec = { modelId: state.settings.modelId, reqKey: r.key, reqText: r.text, resumeId, chunkText: m.chunk ? m.chunk.text : '', features: m.features, label, at: Date.now() }; const id = await Storage.put('feedback', rec).catch(() => null); rec.id = id ?? rec.at; state.feedback.push(rec); }
-  await trainIfReady(); renderLearnStatus(); if (state.settings.useLearning) await rescore();
+  const a = state.analysis; if (!a) return;
+  const res = a.results.find(r => r.resumeId === resumeId);
+  const r = state.jd.reqs.find(q => q.id === reqId);
+  if (!res || !r) return;
+  const m = res.matches[reqId];
+  const chunkText = m && m.chunk ? m.chunk.text : '';
+  const existing = state.feedback.find(f => f.reqKey === r.key && f.resumeId === resumeId && f.modelId === state.settings.modelId && (f.chunkText || '') === chunkText);
+
+  if (existing && existing.label === label) {
+    await Storage.del('feedback', existing.id).catch(() => {});
+    state.feedback = state.feedback.filter(f => f !== existing);
+    toast('Feedback cleared');
+  } else if (existing) {
+    existing.label = label; existing.features = m.features; existing.at = Date.now();
+    await Storage.put('feedback', existing).catch(() => {});
+    toast(label ? 'Marked correct — evidence confirmed' : 'Marked incorrect — evidence rejected for this match');
+  } else {
+    const rec = { modelId: state.settings.modelId, reqKey: r.key, reqText: r.text, resumeId, chunkText, features: m.features, label, at: Date.now() };
+    const id = await Storage.put('feedback', rec).catch(() => null);
+    rec.id = id ?? rec.at; state.feedback.push(rec);
+    toast(label ? 'Marked correct — evidence confirmed' : 'Marked incorrect — evidence rejected for this match');
+  }
+
+  await trainIfReady();
+  renderLearnStatus();
+  await rescore();
 }
 async function trainIfReady() {
-  const ex = state.feedback.filter(f => f.modelId === state.settings.modelId); if (ex.length < 20 || !ex.some(f => f.label === 1) || !ex.some(f => f.label === 0)) { state.learned = state.learned && state.learned.modelId === state.settings.modelId ? state.learned : null; return; }
-  try { const r = await WorkerClient.call({ type: 'TRAIN_RERANKER', examples: ex.map(f => ({ features: f.features, label: f.label })), epochs: 300, lr: 0.05 }); state.learned = { modelId: state.settings.modelId, weights: r.result.weights, loss: r.result.loss, count: ex.length, at: Date.now() }; await Storage.put('modelWeights', state.learned).catch(() => {}); }
-  catch (e) { state.workerLog.push('Training failed: ' + e.message); }
+  const ex = state.feedback.filter(f => f.modelId === state.settings.modelId);
+  if (ex.length < 20 || !ex.some(f => f.label === 1) || !ex.some(f => f.label === 0)) {
+    if (state.learned && state.learned.modelId === state.settings.modelId) {
+      state.learned = null;
+      await Storage.del('modelWeights', state.settings.modelId).catch(() => {});
+    }
+    return;
+  }
+  try {
+    const r = await WorkerClient.call({ type: 'TRAIN_RERANKER', examples: ex.map(f => ({ features: f.features, label: f.label })), epochs: 300, lr: 0.05 });
+    state.learned = { modelId: state.settings.modelId, weights: r.result.weights, loss: r.result.loss, count: ex.length, at: Date.now() };
+    await Storage.put('modelWeights', state.learned).catch(() => {});
+  } catch (e) {
+    state.workerLog.push('Training failed: ' + e.message);
+  }
 }
 function renderLearnStatus() { const ex = state.feedback.filter(f => f.modelId === state.settings.modelId); $('learn-count').textContent = ex.length; $('learn-status').textContent = state.learned && state.learned.modelId === state.settings.modelId ? `Learned model active (loss ${round(state.learned.loss, 3)}, ${state.learned.count} examples)` : (ex.length < 20 ? `${20 - ex.length} more labeled examples needed to activate` : 'Needs both Correct and Incorrect examples'); }
 
@@ -1669,7 +1971,7 @@ async function handleFiles(files, replaceId) {
   }
   setProgress(0, 'Idle');
 }
-function invalidateAnalysis() { if (state.analysis) { state.analysis = null; $('results').classList.add('hidden'); $('st-step').textContent = 'Inputs changed — run Analyze again'; } renderRecEmpty(); }
+function invalidateAnalysis() { if (state.analysis) { state.analysis = null; $('results').classList.add('hidden'); $('st-step').textContent = 'Inputs changed — run Analyze again'; } }
 function repreprocessAll() { for (const r of state.resumes) deriveResume(r); renderLibrary(); }
 function renderLibrary() {
   const list = $('resume-list'); list.textContent = ''; $('lib-count').textContent = `${state.resumes.length} / ${MAX_RESUMES}`; $('lib-empty').classList.toggle('hidden', state.resumes.length > 0);
@@ -1685,11 +1987,7 @@ function renderLibrary() {
     card.append(el('div', { class: 'actions' }, [el('button', { class: 'btn small', text: 'Replace', onclick: () => { const inp = $('file-replace'); inp.dataset.replace = r.id; inp.value = ''; inp.click(); } }), el('button', { class: 'btn small danger', text: 'Remove', onclick: () => removeResume(r.id) })]));
     list.append(card);
   }
-  $('hdr-lib-count').textContent = state.resumes.length + (state.resumes.length === 1 ? ' resume' : ' resumes');
-  renderRecEmpty();
 }
-function openSettings() { const d = $('settings-dialog'); if (d.open) return; if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); }
-function closeSettings() { const d = $('settings-dialog'); if (typeof d.close === 'function') d.close(); else { d.removeAttribute('open'); document.body.appendChild($('toast')); } }
 
 /* ---------------------------------- JOB DESCRIPTION UI ---------------------------------- */
 let jdDebounce = null;
@@ -1705,37 +2003,46 @@ function processJd() {
   const hint = $('jd-hint'); hint.textContent = words === 0 ? '' : words < 40 ? 'The job description is too short to analyze meaningfully (add at least ~40 words).' : state.jd.reqs.length === 0 ? 'No requirement units detected — check the Excluded content panel or add line breaks.' : '';
   renderExcluded(); renderRequirements(); updateAnalyzeButton(); if (words > 0) markStep(2); invalidateAnalysis(); renderVerify();
 }
-function renderRecEmpty() {
-  if (state.analysis && state.analysis.results) return;
-  const card = $('rec-card'); card.textContent = '';
-  const n = state.resumes.length; const plural = n === 1 ? 'resume' : 'resumes';
-  const jdReady = state.jd.raw.split(/\s+/).filter(Boolean).length >= 40 && state.jd.reqs.length > 0;
-  let msg, btn = null;
-  if (analyzing) msg = `Analyzing ${n} ${plural} against this job description. The recommendation appears here when scoring finishes.`;
-  else if (!n) { msg = 'Your resume library is empty. Add your tailored resume versions, then paste a job description and press Analyze Resumes.'; btn = el('button', { class: 'btn primary', text: 'Add resumes', onclick: openSettings }); }
-  else if (!jdReady) { msg = `${n} ${plural} ready. Paste a job description to find the best fit.`; btn = el('button', { class: 'btn', text: 'Manage resumes', onclick: openSettings }); }
-  else { msg = `Ready to compare ${n} ${plural}. Press Analyze Resumes to see which version fits this job best.`; btn = el('button', { class: 'btn', text: 'Manage resumes', onclick: openSettings }); }
-  card.append(el('div', { class: 'card-head' }, [el('h2', { text: 'Recommended Resume' })]));
-  const ring = el('div', { class: 'ring', style: '--p:0' }, [el('span', { text: '—' }), el('small', { text: 'match score' })]);
-  card.append(el('div', { class: 'rec rec-empty' }, [ring, el('div', {}, [el('p', { text: msg }), btn ? el('div', { class: 'actions' }, [btn]) : null])]));
-}
 function renderExcluded() {
   const list = $('excl-list'); list.textContent = ''; const ex = state.jd.blocks.filter(b => b.excluded); $('excl-count').textContent = ex.length + ' block' + (ex.length === 1 ? '' : 's');
   for (const b of ex) list.append(el('div', { class: 'excl' }, [el('button', { class: 'btn small', text: 'Restore', onclick: () => { b.excluded = false; b.auto = false; state.jd.reqs = extractRequirements(state.jd.blocks, state.jd.reqs); renderExcluded(); renderRequirements(); updateAnalyzeButton(); invalidateAnalysis(); } }), el('span', { text: b.text, style: 'flex:1' }), el('span', { class: 'why', text: b.reason })]));
   if (!ex.length) list.append(el('div', { class: 'note', text: 'Nothing excluded.' }));
 }
 function renderRequirements() {
-  const list = $('req-list'); list.textContent = ''; const reqs = state.jd.reqs; const counts = { required: 0, responsibility: 0, preferred: 0, informational: 0, excluded: 0 };
+  const list = $('req-list'); list.textContent = ''; const reqs = state.jd.reqs;
+  const counts = { required: 0, responsibility: 0, preferred: 0, informational: 0, excluded: 0 };
   for (const r of reqs) counts[r.excludedByUser ? 'excluded' : r.cls]++;
-  $('req-summary').textContent = reqs.length ? `${counts.required} required · ${counts.responsibility} responsibilities · ${counts.preferred} preferred · ${counts.informational} informational · ${counts.excluded} excluded` : '';
+  const manualCount = reqs.filter(r => !r.excludedByUser && isNonComparativeRequirement(r)).length;
+  $('req-summary').textContent = reqs.length ? `${counts.required} required · ${counts.responsibility} responsibilities · ${counts.preferred} preferred · ${counts.informational} informational · ${manualCount} manual-only · ${counts.excluded} excluded` : '';
   $('st-reqs').textContent = reqs.filter(r => !r.excludedByUser).length;
+
   for (const r of reqs) {
     const row = el('div', { class: 'req' + (r.excludedByUser ? ' excluded' : '') });
-    const sel = el('select', { onchange: (e) => { r.cls = e.target.value; r.verify = detectVerificationType(r.text, r.cls); row.className = 'req' + (r.excludedByUser ? ' excluded' : ''); renderRequirements(); onRequirementsChanged(); } }, ['required', 'responsibility', 'preferred', 'informational'].map(c => el('option', { value: c, text: c[0].toUpperCase() + c.slice(1) }))); sel.value = r.cls;
-    const wInput = el('input', { type: 'number', min: '0', max: '3', step: '0.05', title: 'Weight override', value: r.userWeight != null ? r.userWeight : requirementWeight(r, state.settings).toFixed(2), onchange: (e) => { const v = parseFloat(e.target.value); r.userWeight = Number.isFinite(v) ? clamp(v, 0, 3) : null; onRequirementsChanged(); } });
+    const sel = el('select', { onchange: (e) => {
+      r.cls = e.target.value; r.verify = detectVerificationType(r.text, r.cls);
+      row.className = 'req' + (r.excludedByUser ? ' excluded' : '');
+      renderRequirements(); onRequirementsChanged();
+    } }, ['required', 'responsibility', 'preferred', 'informational'].map(c => el('option', { value: c, text: c[0].toUpperCase() + c.slice(1) })));
+    sel.value = r.cls;
+
+    const wInput = el('input', {
+      type: 'number', min: '0', max: '3', step: '0.05',
+      title: isNonComparativeRequirement(r) ? 'Manual-only by default. Enter a weight only if you intentionally want this item to influence resume ranking.' : 'Weight override',
+      value: r.userWeight != null ? r.userWeight : requirementWeight(r, state.settings).toFixed(2),
+      onchange: (e) => { const v = parseFloat(e.target.value); r.userWeight = Number.isFinite(v) ? clamp(v, 0, 3) : null; onRequirementsChanged(); }
+    });
     const btn = el('button', { class: 'btn small', text: r.excludedByUser ? 'Restore' : 'Exclude', onclick: () => { r.excludedByUser = !r.excludedByUser; renderRequirements(); onRequirementsChanged(); } });
     const flags = r.verify.map(v => el('span', { class: 'badge warn', text: 'verify: ' + v.type }));
-    row.append(el('div', {}, [el('div', { class: 'text', text: r.text }), el('div', { class: 'tiny', text: (r.section !== 'unknown' ? 'section: ' + r.section + ' · ' : '') + (r.why ? 'classified by ' + r.why : 'auto-classified') })]), el('div', { class: 'ctl' }, [...flags, sel, wInput, btn]));
+    if (isNonComparativeRequirement(r)) flags.unshift(el('span', { class: 'badge neutral', text: 'manual-only: not ranked' }));
+    if ((r.repeatCount || 1) > 1) flags.unshift(el('span', { class: 'badge accent', text: `repeated ×${r.repeatCount}` }));
+
+    row.append(
+      el('div', {}, [
+        el('div', { class: 'text', text: r.text }),
+        el('div', { class: 'tiny', text: (r.section !== 'unknown' ? 'section: ' + r.section + ' · ' : '') + (r.why ? 'classified by ' + r.why : 'auto-classified') })
+      ]),
+      el('div', { class: 'ctl' }, [...flags, sel, wInput, btn])
+    );
     list.append(row);
   }
 }
@@ -1832,7 +2139,7 @@ function renderRanking() {
     card.append(el('div', { class: 'why', text: res.explanation }));
     // Score breakdown
     const bd = el('details', { class: 'panel' }, [el('summary', { text: 'Score Breakdown' })]); const bdBody = el('div', { class: 'body' }); const grid = el('div', { class: 'breakdown' });
-    const rows = [...Object.entries(res.components).map(([k, v]) => [k + ` (weight ${Math.round((k === 'Requirement Coverage' ? res.W.semantic : k === 'Keyword / ATS Coverage' ? res.W.keyword : k === 'Overall Semantic Alignment' ? res.W.overall : k === 'Functional Alignment' ? res.W.functional * 0.6 : res.W.functional * 0.4) * 100)}%)`, pct(v)]), ['Leadership', pct(res.features.leadership)], ['Analytics', pct(res.perFam.analytics)], ['Technical Systems', pct(res.perFam.technical_ops)], ['Operations', pct(res.perFam.general_ops)], ['Strategy', pct(res.perFam.strategy_ops)], ['Program Management', pct(res.perFam.program)], ['Continuous Improvement', pct(res.perFam.ci)], ['Customer / Client', pct(res.perFam.customer_ops)], ['Logistics', pct(res.perFam.logistics)], ['Financial / P&L', pct(res.perFam.business_ops)], ['Tools coverage', res.features.tools == null ? 'n/a' : pct(res.features.tools)], ['Required tools coverage', res.features.requiredTools == null ? 'n/a' : pct(res.features.requiredTools)], ['Seniority alignment', `${res.seniority} (${pct(res.features.seniorityAlign)})`], ['Title similarity', pct(res.features.titleSim)], ['Required coverage', res.features.requiredCoverage == null ? 'n/a' : pct(res.features.requiredCoverage)], ['Preferred coverage', res.features.preferredCoverage == null ? 'n/a' : pct(res.features.preferredCoverage)], ['Must-have gap penalty', '−' + res.penalty], ['Manual-verification items', a.verifyItems.length], ['Raw composite → final', `${res.rawScore} → ${res.score}`]];
+    const rows = [...Object.entries(res.components).map(([k, v]) => [k + ` (weight ${Math.round((k === 'Requirement Coverage' ? res.W.semantic : k === 'Keyword / ATS Coverage' ? res.W.keyword : k === 'Overall Semantic Alignment' ? res.W.overall : k === 'Functional Alignment' ? res.W.functional * 0.72 : k === 'Corpus Discrimination' ? res.W.functional * 0.18 : 0) * 100)}%)`, pct(v)]), ['Leadership', pct(res.features.leadership)], ['Analytics', pct(res.perFam.analytics)], ['Technical Systems', pct(res.perFam.technical_ops)], ['Operations', pct(res.perFam.general_ops)], ['Strategy', pct(res.perFam.strategy_ops)], ['Program Management', pct(res.perFam.program)], ['Continuous Improvement', pct(res.perFam.ci)], ['Customer / Client', pct(res.perFam.customer_ops)], ['Logistics', pct(res.perFam.logistics)], ['Financial / P&L', pct(res.perFam.business_ops)], ['Tools coverage', res.features.tools == null ? 'n/a' : pct(res.features.tools)], ['Required tools coverage', res.features.requiredTools == null ? 'n/a' : pct(res.features.requiredTools)], ['Seniority alignment', `${res.seniority} (${pct(res.features.seniorityAlign)})`], ['Title similarity', pct(res.features.titleSim)], ['Required coverage', res.features.requiredCoverage == null ? 'n/a' : pct(res.features.requiredCoverage)], ['Preferred coverage', res.features.preferredCoverage == null ? 'n/a' : pct(res.features.preferredCoverage)], ['Must-have gap penalty', '−' + res.penalty], ['Manual-verification items', a.verifyItems.length], ['Raw composite → final', `${res.rawScore} → ${res.score}`]];
     for (const [k, v] of rows) grid.append(el('div', { class: 'k' }, [el('span', { text: k }), el('span', { text: String(v) })])); bdBody.append(grid); bd.append(bdBody); card.append(bd);
     // Requirement table
     const rt = el('details', { class: 'panel' }, [el('summary', { text: 'Requirement Evidence Table' })]); const rtBody = el('div', { class: 'body' });
@@ -1858,8 +2165,16 @@ function buildRequirementTable(res, resume) {
   function draw() { tw.textContent = ''; let data = rowsData(); if (filter === 'gap') data = data.filter(d => d.strength < 0.25); else if (filter === 'strong') data = data.filter(d => d.strength >= 0.72); else if (filter !== 'all') data = data.filter(d => d.cls === filter);
     data.sort((x, y) => { const a = x[sortKey], b = y[sortKey]; const c = typeof a === 'number' ? a - b : String(a).localeCompare(String(b)); return asc ? c : -c; });
     const table = el('table'); const thead = el('thead'); const tr = el('tr'); for (const [k, t] of cols) tr.append(el('th', { text: t, class: sortKey === k ? 'sorted' + (asc ? ' asc' : '') : '', onclick: () => { if (sortKey === k) asc = !asc; else { sortKey = k; asc = k === 'requirement'; } draw(); } })); thead.append(tr); table.append(thead);
-    const tb = el('tbody'); for (const d of data) { const fb = state.feedback.find(f => f.reqKey === d.q.key && f.resumeId === resume.id && f.modelId === s.modelId);
-      tb.append(el('tr', {}, [el('td', { text: d.requirement }), el('td', { text: d.cls }), el('td', { text: d.importance.toFixed(2) }), el('td', { class: 'strength-' + strengthClass(d.strength), text: pct(d.strength) + '' }), el('td', { text: d.status + (d.m.level !== 'No Evidence' ? ' · ' + d.m.level : '') }), el('td', {}, [d.evidence ? el('span', { class: 'evid', text: d.evidence }) : el('b', { text: 'No Supporting Evidence Found' }), d.m.concepts.length ? el('div', { class: 'tiny', text: 'concepts: ' + d.m.concepts.join(', ') }) : null]), el('td', { text: d.section || '—' }), el('td', { text: d.terms || '—' }), el('td', {}, [el('span', { class: 'fb' }, [el('button', { class: fb && fb.label === 1 ? 'on' : '', text: '✓ Correct', onclick: () => addFeedback(d.q.id, resume.id, 1) }), el('button', { class: fb && fb.label === 0 ? 'on' : '', text: '✗ Incorrect', onclick: () => addFeedback(d.q.id, resume.id, 0) })])])])); }
+    const tb = el('tbody'); for (const d of data) {
+      const chunkText = d.m && d.m.chunk ? d.m.chunk.text : '';
+      const fb = state.feedback.find(f => f.reqKey === d.q.key && f.resumeId === resume.id && f.modelId === s.modelId && (f.chunkText || '') === chunkText);
+      const feedbackCell = d.m.manualOnly
+        ? el('span', { class: 'tiny', text: 'Manual verification item' })
+        : el('span', { class: 'fb' }, [
+            el('button', { class: fb && fb.label === 1 ? 'on' : '', text: '✓ Correct', title: 'Confirm this exact requirement/evidence pairing', onclick: () => addFeedback(d.q.id, resume.id, 1) }),
+            el('button', { class: fb && fb.label === 0 ? 'on' : '', text: '✗ Incorrect', title: 'Reject this exact evidence pairing; it will be removed from the current match score', onclick: () => addFeedback(d.q.id, resume.id, 0) })
+          ]);
+      tb.append(el('tr', {}, [el('td', { text: d.requirement }), el('td', { text: d.cls }), el('td', { text: d.importance.toFixed(2) }), el('td', { class: d.m.manualOnly ? '' : 'strength-' + strengthClass(d.strength), text: d.m.manualOnly ? 'Manual' : pct(d.strength) + '' }), el('td', { text: d.status + (d.m.level !== 'No Evidence' ? ' · ' + d.m.level : '') }), el('td', {}, [d.m.manualOnly && d.m.verified ? el('span', { class: 'evid', text: d.m.verified }) : d.evidence ? el('span', { class: 'evid', text: d.evidence }) : el('b', { text: d.m.manualOnly ? 'Verify directly' : 'No Supporting Evidence Found' }), d.m.concepts.length ? el('div', { class: 'tiny', text: 'concepts: ' + d.m.concepts.join(', ') }) : null]), el('td', { text: d.section || '—' }), el('td', { text: d.terms || '—' }), el('td', {}, [feedbackCell])])); }
     table.append(tb); tw.append(table); }
   draw(); return wrap;
 }
@@ -2001,11 +2316,6 @@ function wireEvents() {
   $('btn-paste-add').addEventListener('click', async () => { const t = $('paste-text').value; const label = $('paste-label').value.trim(); const r = await addResume({ text: t, label: label || undefined, filename: '' }); if (r) { $('paste-text').value = ''; $('paste-label').value = ''; $('paste-resume-box').classList.add('hidden'); } });
   $('btn-export-lib').addEventListener('click', exportLibrary); $('btn-import-lib').addEventListener('click', () => { $('file-import-lib').value = ''; $('file-import-lib').click(); }); $('file-import-lib').addEventListener('change', e => { if (e.target.files[0]) importLibrary(e.target.files[0]); });
   $('btn-clear-emb').addEventListener('click', clearEmbeddings); $('btn-clear-all').addEventListener('click', clearAll);
-  const dlg = $('settings-dialog'); let downOnBackdrop = false;
-  const outside = (e) => { const r = dlg.getBoundingClientRect(); return e.target === dlg && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom); };
-  $('btn-settings').addEventListener('click', openSettings); $('btn-settings-close').addEventListener('click', closeSettings);
-  dlg.addEventListener('pointerdown', e => { downOnBackdrop = outside(e); }); dlg.addEventListener('click', e => { if (downOnBackdrop && outside(e)) closeSettings(); downOnBackdrop = false; });
-  dlg.addEventListener('close', () => document.body.appendChild($('toast')));
   $('jd-text').addEventListener('input', onJdInput); $('jd-title').addEventListener('input', onJdInput); $('jd-company').addEventListener('input', onJdInput);
   $('btn-clear-jd').addEventListener('click', () => { $('jd-text').value = ''; $('jd-title').value = ''; $('jd-company').value = ''; state.jd.reqs = []; processJd(); });
   $('btn-demo').addEventListener('click', async () => { for (const d of DEMO_RESUMES) { if (state.resumes.some(r => r.label === d.label)) continue; await addResume({ text: d.text, label: d.label, filename: d.label.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.txt' }); } $('jd-title').value = 'Senior Manager, Operations Strategy & Analytics'; $('jd-company').value = 'Contoso Logistics (demo)'; $('jd-text').value = DEMO_JD; processJd(); toast('Demo data loaded — press Analyze Resumes'); });
@@ -2028,7 +2338,7 @@ async function init() {
   if (typeof Worker === 'undefined' || typeof WebAssembly === 'undefined') alertBox('warn', 'This browser lacks Web Workers or WebAssembly; the semantic model cannot run. The deterministic matching engine will be used.', 'compat');
   try { const s = await Storage.get('settings', 'settings'); if (s && s.value) state.settings = { ...DEFAULT_SETTINGS, ...s.value }; } catch (e) { /* defaults */ }
   applyTheme();
-  try { const stored = await Storage.all('resumes'); for (const r of stored.sort((a, b) => a.loadedAt - b.loadedAt)) { if (state.resumes.length >= MAX_RESUMES) break; const res = { ...r, warnings: r.warnings || [], embed: null }; try { deriveResume(res); state.resumes.push(res); } catch (e) { state.workerLog.push('Stored resume unreadable, skipped: ' + e.message); } } } catch (e) { alertBox('warn', 'Stored resumes could not be read (cache may be corrupted). Use Clear All Stored Data in Settings to reset.', 'idb2'); }
+  try { const stored = await Storage.all('resumes'); for (const r of stored.sort((a, b) => a.loadedAt - b.loadedAt)) { if (state.resumes.length >= MAX_RESUMES) break; const res = { ...r, warnings: r.warnings || [], embed: null }; try { deriveResume(res); state.resumes.push(res); } catch (e) { state.workerLog.push('Stored resume unreadable, skipped: ' + e.message); } } } catch (e) { alertBox('warn', 'Stored resumes could not be read (cache may be corrupted). Use Clear All Stored Data to reset.', 'idb2'); }
   try { state.feedback = await Storage.all('feedback'); const lw = await Storage.get('modelWeights', state.settings.modelId); if (lw) state.learned = lw; } catch (e) { /* ignore */ }
   try { const c = await Storage.get('calibration', calibKey()); if (c) state.calib = c; } catch (e) { /* ignore */ }
   wireEvents(); renderLibrary(); renderSettings(); renderVerify(); updateStatus(); updateAnalyzeButton(); renderLearnStatus();
